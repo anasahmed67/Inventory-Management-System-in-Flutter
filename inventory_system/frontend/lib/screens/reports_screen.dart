@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
 import '../providers/product_provider.dart';
@@ -66,7 +67,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         children: [
                           const Text('Total Inventory Value', style: TextStyle(color: Colors.white70, fontSize: 16)),
                           const SizedBox(height: 8),
-                          Text('\$$value',
+                          Text('${AppTheme.currencySymbol}${NumberFormat('#,###').format(double.tryParse(value) ?? 0)}',
                               style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
                         ],
                       ),

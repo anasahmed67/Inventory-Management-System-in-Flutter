@@ -10,7 +10,7 @@ class ExportService {
   /// Exports product list to CSV
   static void exportProductsToCSV(List<dynamic> products) {
     List<List<dynamic>> rows = [];
-    
+
     // Headers
     rows.add(['SKU', 'Name', 'Description', 'Quantity', 'Price', 'Value']);
 
@@ -28,13 +28,17 @@ class ExportService {
     }
 
     String csvContent = const ListToCsvConverter().convert(rows);
-    _downloadFile(csvContent, 'inventory_export_${_timestamp()}.csv', 'text/csv');
+    _downloadFile(
+      csvContent,
+      'inventory_export_${_timestamp()}.csv',
+      'text/csv',
+    );
   }
 
   /// Exports transaction list to CSV
   static void exportTransactionsToCSV(List<dynamic> transactions) {
     List<List<dynamic>> rows = [];
-    
+
     // Headers
     rows.add(['Date', 'Product', 'Type', 'Quantity', 'User', 'Reason']);
 
@@ -50,7 +54,11 @@ class ExportService {
     }
 
     String csvContent = const ListToCsvConverter().convert(rows);
-    _downloadFile(csvContent, 'transactions_export_${_timestamp()}.csv', 'text/csv');
+    _downloadFile(
+      csvContent,
+      'transactions_export_${_timestamp()}.csv',
+      'text/csv',
+    );
   }
 
   /// Helper to handle downloads based on platform

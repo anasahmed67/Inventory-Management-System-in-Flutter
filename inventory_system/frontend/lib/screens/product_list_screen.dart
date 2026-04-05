@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/product_provider.dart';
@@ -18,13 +19,20 @@ class _ProductListScreenState extends State<ProductListScreen> {
   final Set<int> _loadingIds = {};
 
   void _quickAdjustQuantity(
-      Map<String, dynamic> product, int change, ProductProvider provider, AuthProvider auth) async {
+    Map<String, dynamic> product,
+    int change,
+    ProductProvider provider,
+    AuthProvider auth,
+  ) async {
     final id = product['id'];
     final currentQty = product['quantity'] ?? 0;
 
     if (currentQty + change < 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cannot reduce stock below zero'), backgroundColor: AppTheme.danger),
+        const SnackBar(
+          content: Text('Cannot reduce stock below zero'),
+          backgroundColor: AppTheme.danger,
+        ),
       );
       return;
     }
@@ -40,7 +48,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to adjust stock: $e'), backgroundColor: AppTheme.danger),
+          SnackBar(
+            content: Text('Failed to adjust stock: $e'),
+            backgroundColor: AppTheme.danger,
+          ),
         );
       }
     } finally {
@@ -87,9 +98,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     children: [
                       Text(
                         'Products',
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineMedium
+                        style: Theme.of(context).textTheme.headlineMedium
                             ?.copyWith(fontWeight: FontWeight.w700),
                       ),
                       const SizedBox(height: 4),
@@ -104,7 +113,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   _buildHeaderIconButton(
                     icon: Icons.file_download_outlined,
                     tooltip: 'Export CSV',
-                    onTap: () => ExportService.exportProductsToCSV(productProvider.products),
+                    onTap: () => ExportService.exportProductsToCSV(
+                      productProvider.products,
+                    ),
                   ),
                   const SizedBox(width: AppTheme.spacingMd),
                   ElevatedButton.icon(
@@ -112,11 +123,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       await Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const ProductFormScreen()),
+                          builder: (context) => const ProductFormScreen(),
+                        ),
                       );
                       if (!context.mounted) return;
-                      Provider.of<ProductProvider>(context, listen: false)
-                          .fetchProducts();
+                      Provider.of<ProductProvider>(
+                        context,
+                        listen: false,
+                      ).fetchProducts();
                     },
                     icon: const Icon(Icons.add_rounded, size: 20),
                     label: const Text('Add Product'),
@@ -158,38 +172,45 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
             // ── Product List ──
             Expanded(
-              child: productProvider.isLoading && productProvider.products.isEmpty
+              child:
+                  productProvider.isLoading && productProvider.products.isEmpty
                   ? const Center(
-                      child: CircularProgressIndicator(color: AppTheme.primary))
+                      child: CircularProgressIndicator(color: AppTheme.primary),
+                    )
                   : filteredProducts.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.inventory_2_outlined,
-                                  size: 64, color: AppTheme.textHint),
-                              const SizedBox(height: AppTheme.spacingMd),
-                              Text(
-                                'No products found',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
-                                    ?.copyWith(color: AppTheme.textHint),
-                              ),
-                            ],
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.inventory_2_outlined,
+                            size: 64,
+                            color: AppTheme.textHint,
                           ),
-                        )
-                      : RefreshIndicator(
-                          onRefresh: () async => productProvider.fetchProducts(),
-                          child: ListView.builder(
-                            itemCount: filteredProducts.length,
-                            itemBuilder: (context, index) {
-                              final product = filteredProducts[index];
-                              return _buildProductCard(
-                                  product, isAdmin, productProvider, authProvider);
-                            },
+                          const SizedBox(height: AppTheme.spacingMd),
+                          Text(
+                            'No products found',
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(color: AppTheme.textHint),
                           ),
-                        ),
+                        ],
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: () async => productProvider.fetchProducts(),
+                      child: ListView.builder(
+                        itemCount: filteredProducts.length,
+                        itemBuilder: (context, index) {
+                          final product = filteredProducts[index];
+                          return _buildProductCard(
+                            product,
+                            isAdmin,
+                            productProvider,
+                            authProvider,
+                          );
+                        },
+                      ),
+                    ),
             ),
           ],
         ),
@@ -197,8 +218,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
     );
   }
 
-  Widget _buildProductCard(Map<String, dynamic> product, bool isAdmin,
-      ProductProvider productProvider, AuthProvider authProvider) {
+  Widget _buildProductCard(
+    Map<String, dynamic> product,
+    bool isAdmin,
+    ProductProvider productProvider,
+    AuthProvider authProvider,
+  ) {
     final id = product['id'];
     final quantity = product['quantity'] ?? 0;
     final threshold = product['low_stock_threshold'] ?? 5;
@@ -237,9 +262,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     style: TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 18,
-                      color: isLowStock
-                          ? AppTheme.danger
-                          : AppTheme.primary,
+                      color: isLowStock ? AppTheme.danger : AppTheme.primary,
                     ),
                   ),
                   Text(
@@ -265,7 +288,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   color: AppTheme.success,
                   onTap: _loadingIds.contains(id)
                       ? null
-                      : () => _quickAdjustQuantity(product, 1, productProvider, authProvider),
+                      : () => _quickAdjustQuantity(
+                          product,
+                          1,
+                          productProvider,
+                          authProvider,
+                        ),
                 ),
                 const SizedBox(height: 4),
                 _buildQuickIconButton(
@@ -273,7 +301,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   color: AppTheme.danger,
                   onTap: _loadingIds.contains(id)
                       ? null
-                      : () => _quickAdjustQuantity(product, -1, productProvider, authProvider),
+                      : () => _quickAdjustQuantity(
+                          product,
+                          -1,
+                          productProvider,
+                          authProvider,
+                        ),
                 ),
               ],
             ),
@@ -297,16 +330,21 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     children: [
                       _buildInfoChip('SKU: ${product['sku']}'),
                       const SizedBox(width: AppTheme.spacingSm),
-                      _buildInfoChip('\$${price.toStringAsFixed(2)}'),
+                      _buildInfoChip(
+                        '${AppTheme.currencySymbol}${NumberFormat('#,###.##').format(price)}',
+                      ),
                       if (isLowStock) ...[
                         const SizedBox(width: AppTheme.spacingSm),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 2),
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: AppTheme.dangerLight,
                             borderRadius: BorderRadius.circular(
-                                AppTheme.radiusFull),
+                              AppTheme.radiusFull,
+                            ),
                           ),
                           child: const Text(
                             'Low Stock',
@@ -349,30 +387,36 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     color: AppTheme.danger,
                     tooltip: 'Delete',
                     onTap: () async {
-                      final confirm = await showDialog<bool>(
+                      final confirm =
+                          await showDialog<bool>(
                             context: context,
                             builder: (context) => AlertDialog(
                               title: const Text('Delete Product?'),
                               content: const Text(
-                                  'Are you sure you want to delete this item?'),
+                                'Are you sure you want to delete this item?',
+                              ),
                               actions: [
                                 TextButton(
-                                    onPressed: () =>
-                                        Navigator.pop(context, false),
-                                    child: const Text('Cancel')),
+                                  onPressed: () =>
+                                      Navigator.pop(context, false),
+                                  child: const Text('Cancel'),
+                                ),
                                 ElevatedButton(
-                                    onPressed: () =>
-                                        Navigator.pop(context, true),
-                                    style: ElevatedButton.styleFrom(
-                                        backgroundColor: AppTheme.danger),
-                                    child: const Text('Delete')),
+                                  onPressed: () => Navigator.pop(context, true),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppTheme.danger,
+                                  ),
+                                  child: const Text('Delete'),
+                                ),
                               ],
                             ),
                           ) ??
                           false;
                       if (confirm) {
                         await productProvider.deleteProduct(
-                            id, authProvider.role!);
+                          id,
+                          authProvider.role!,
+                        );
                       }
                     },
                   ),
@@ -387,8 +431,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   Widget _buildInfoChip(String text) {
     return Container(
-      padding:
-          const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
         color: AppTheme.background,
         borderRadius: BorderRadius.circular(AppTheme.radiusFull),

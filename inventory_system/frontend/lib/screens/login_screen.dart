@@ -34,10 +34,7 @@ class _LoginScreenState extends State<LoginScreen>
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.1),
       end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animController,
-      curve: Curves.easeOut,
-    ));
+    ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
     _animController.forward();
   }
 
@@ -80,11 +77,7 @@ class _LoginScreenState extends State<LoginScreen>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF6C5CE7),
-              Color(0xFF8B7CF7),
-              Color(0xFFA29BFE),
-            ],
+            colors: [Color(0xFF6C5CE7), Color(0xFF8B7CF7), Color(0xFFA29BFE)],
           ),
         ),
         child: Center(
@@ -105,8 +98,9 @@ class _LoginScreenState extends State<LoginScreen>
                         height: 80,
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius:
-                              BorderRadius.circular(AppTheme.radiusXl),
+                          borderRadius: BorderRadius.circular(
+                            AppTheme.radiusXl,
+                          ),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withAlpha(30),
@@ -124,18 +118,18 @@ class _LoginScreenState extends State<LoginScreen>
                       const SizedBox(height: AppTheme.spacingLg),
                       Text(
                         'Inventory Manager',
-                        style:
-                            Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700,
-                                ),
+                        style: Theme.of(context).textTheme.headlineMedium
+                            ?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                            ),
                       ),
                       const SizedBox(height: AppTheme.spacingSm),
                       Text(
                         'Sign in to manage your inventory',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.white70,
-                            ),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodyMedium?.copyWith(color: Colors.white70),
                       ),
                       const SizedBox(height: AppTheme.spacingXl),
 
@@ -144,8 +138,9 @@ class _LoginScreenState extends State<LoginScreen>
                         padding: const EdgeInsets.all(AppTheme.spacingLg),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius:
-                              BorderRadius.circular(AppTheme.radiusXl),
+                          borderRadius: BorderRadius.circular(
+                            AppTheme.radiusXl,
+                          ),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withAlpha(20),
@@ -159,9 +154,7 @@ class _LoginScreenState extends State<LoginScreen>
                           children: [
                             Text(
                               'Welcome back',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleLarge
+                              style: Theme.of(context).textTheme.titleLarge
                                   ?.copyWith(fontWeight: FontWeight.w700),
                             ),
                             const SizedBox(height: 4),
@@ -174,9 +167,7 @@ class _LoginScreenState extends State<LoginScreen>
                             // Email
                             Text(
                               'Email',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge
+                              style: Theme.of(context).textTheme.bodyLarge
                                   ?.copyWith(
                                     fontWeight: FontWeight.w500,
                                     fontSize: 13,
@@ -187,8 +178,10 @@ class _LoginScreenState extends State<LoginScreen>
                               controller: _emailController,
                               decoration: const InputDecoration(
                                 hintText: 'you@example.com',
-                                prefixIcon:
-                                    Icon(Icons.email_outlined, size: 20),
+                                prefixIcon: Icon(
+                                  Icons.email_outlined,
+                                  size: 20,
+                                ),
                               ),
                               keyboardType: TextInputType.emailAddress,
                             ),
@@ -197,9 +190,7 @@ class _LoginScreenState extends State<LoginScreen>
                             // Password
                             Text(
                               'Password',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge
+                              style: Theme.of(context).textTheme.bodyLarge
                                   ?.copyWith(
                                     fontWeight: FontWeight.w500,
                                     fontSize: 13,
@@ -210,8 +201,10 @@ class _LoginScreenState extends State<LoginScreen>
                               controller: _passwordController,
                               decoration: InputDecoration(
                                 hintText: '••••••••',
-                                prefixIcon:
-                                    const Icon(Icons.lock_outline, size: 20),
+                                prefixIcon: const Icon(
+                                  Icons.lock_outline,
+                                  size: 20,
+                                ),
                                 suffixIcon: IconButton(
                                   icon: Icon(
                                     _obscurePassword
@@ -220,7 +213,8 @@ class _LoginScreenState extends State<LoginScreen>
                                     size: 20,
                                   ),
                                   onPressed: () => setState(
-                                      () => _obscurePassword = !_obscurePassword),
+                                    () => _obscurePassword = !_obscurePassword,
+                                  ),
                                 ),
                               ),
                               obscureText: _obscurePassword,
@@ -236,11 +230,12 @@ class _LoginScreenState extends State<LoginScreen>
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppTheme.primary,
                                   foregroundColor: Colors.white,
-                                  disabledBackgroundColor:
-                                      AppTheme.primary.withAlpha(150),
+                                  disabledBackgroundColor: AppTheme.primary
+                                      .withAlpha(150),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(
-                                        AppTheme.radiusMd),
+                                      AppTheme.radiusMd,
+                                    ),
                                   ),
                                 ),
                                 child: _isLoading
@@ -275,8 +270,9 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                         decoration: BoxDecoration(
                           color: Colors.white.withAlpha(25),
-                          borderRadius:
-                              BorderRadius.circular(AppTheme.radiusFull),
+                          borderRadius: BorderRadius.circular(
+                            AppTheme.radiusFull,
+                          ),
                         ),
                         child: const Text(
                           'Default: admin@example.com / admin123',

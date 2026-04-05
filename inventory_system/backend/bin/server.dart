@@ -28,7 +28,8 @@ void main() async {
     db: dbName,
   );
 
-  print('Database Settings: Host=$dbHost, User=$dbUser, DB=$dbName, PasswordUsed=${dbPass.isNotEmpty}');
+  print(
+      'Database Settings: Host=$dbHost, User=$dbUser, DB=$dbName, PasswordUsed=${dbPass.isNotEmpty}');
 
   // Connection manager helper
   Future<MySqlConnection> getConnection() async {
@@ -48,7 +49,8 @@ void main() async {
         return value.toString();
       }
     } else if (value is Map) {
-      return value.map((k, v) => MapEntry(k.toString(), _convertToSerializable(v)));
+      return value
+          .map((k, v) => MapEntry(k.toString(), _convertToSerializable(v)));
     } else if (value is List) {
       return value.map((e) => _convertToSerializable(e)).toList();
     } else {
@@ -78,7 +80,7 @@ void main() async {
       final data = jsonDecode(await request.readAsString());
       final email = data['email'];
       final password = data['password'];
-      
+
       print('--- Login Attempt ---');
       print('Email: $email');
       print('Password: $password');
@@ -97,7 +99,7 @@ void main() async {
 
       final user = results.first;
       final storedPassword = user['password'];
-      
+
       print('User found in DB. Stored Password: $storedPassword');
 
       // Comparing passwords directly as plain text (Removing BCrypt)
@@ -127,7 +129,8 @@ void main() async {
   router.get('/api/products', (Request request) async {
     try {
       final conn = await getConnection();
-      final results = await conn.query('SELECT * FROM products ORDER BY name ASC');
+      final results =
+          await conn.query('SELECT * FROM products ORDER BY name ASC');
       await conn.close();
 
       final products = results.map((row) => row.fields).toList();
@@ -140,7 +143,8 @@ void main() async {
   router.post('/api/products', (Request request) async {
     final role = request.headers['X-User-Role'];
     if (role != 'admin') {
-      return jsonResponse({'error': 'Unauthorized: Admin only'}, statusCode: 403);
+      return jsonResponse({'error': 'Unauthorized: Admin only'},
+          statusCode: 403);
     }
 
     try {
@@ -154,18 +158,25 @@ void main() async {
 
       final conn = await getConnection();
       // Check for duplicate SKU
-      final existingSkuResult = await conn.query('SELECT id FROM products WHERE sku = ?', [sku]);
+      final existingSkuResult =
+          await conn.query('SELECT id FROM products WHERE sku = ?', [sku]);
       if (existingSkuResult.isNotEmpty) {
         await conn.close();
-        return jsonResponse({'error': 'Duplicate SKU: A product with this SKU already exists.'}, statusCode: 400);
+        return jsonResponse(
+            {'error': 'Duplicate SKU: A product with this SKU already exists.'},
+            statusCode: 400);
       }
 
       // Check for duplicate barcode
       if (barcode != null && barcode.toString().isNotEmpty) {
-        final existingBarcodeResult = await conn.query('SELECT id FROM products WHERE barcode = ?', [barcode]);
+        final existingBarcodeResult = await conn
+            .query('SELECT id FROM products WHERE barcode = ?', [barcode]);
         if (existingBarcodeResult.isNotEmpty) {
           await conn.close();
-          return jsonResponse({'error': 'Duplicate Barcode: A product with this barcode already exists.'}, statusCode: 400);
+          return jsonResponse({
+            'error':
+                'Duplicate Barcode: A product with this barcode already exists.'
+          }, statusCode: 400);
         }
       }
 
@@ -175,7 +186,8 @@ void main() async {
       );
       await conn.close();
 
-      return jsonResponse({'id': result.insertId, 'status': 'Product created'}, statusCode: 201);
+      return jsonResponse({'id': result.insertId, 'status': 'Product created'},
+          statusCode: 201);
     } catch (e) {
       return jsonResponse({'error': e.toString()}, statusCode: 500);
     }
@@ -184,7 +196,8 @@ void main() async {
   router.put('/api/products/<id>', (Request request, String id) async {
     final role = request.headers['X-User-Role'];
     if (role != 'admin') {
-      return jsonResponse({'error': 'Unauthorized: Admin only'}, statusCode: 403);
+      return jsonResponse({'error': 'Unauthorized: Admin only'},
+          statusCode: 403);
     }
 
     try {
@@ -198,18 +211,26 @@ void main() async {
 
       final conn = await getConnection();
       // Check for duplicate SKU (excluding current)
-      final existingSkuResult = await conn.query('SELECT id FROM products WHERE sku = ? AND id != ?', [sku, id]);
+      final existingSkuResult = await conn.query(
+          'SELECT id FROM products WHERE sku = ? AND id != ?', [sku, id]);
       if (existingSkuResult.isNotEmpty) {
         await conn.close();
-        return jsonResponse({'error': 'Duplicate SKU: This SKU is used by another product.'}, statusCode: 400);
+        return jsonResponse(
+            {'error': 'Duplicate SKU: This SKU is used by another product.'},
+            statusCode: 400);
       }
 
       // Check for duplicate barcode (excluding current)
       if (barcode != null && barcode.toString().isNotEmpty) {
-        final existingBarcodeResult = await conn.query('SELECT id FROM products WHERE barcode = ? AND id != ?', [barcode, id]);
+        final existingBarcodeResult = await conn.query(
+            'SELECT id FROM products WHERE barcode = ? AND id != ?',
+            [barcode, id]);
         if (existingBarcodeResult.isNotEmpty) {
           await conn.close();
-          return jsonResponse({'error': 'Duplicate Barcode: This barcode is used by another product.'}, statusCode: 400);
+          return jsonResponse({
+            'error':
+                'Duplicate Barcode: This barcode is used by another product.'
+          }, statusCode: 400);
         }
       }
 
@@ -228,7 +249,8 @@ void main() async {
   router.delete('/api/products/<id>', (Request request, String id) async {
     final role = request.headers['X-User-Role'];
     if (role != 'admin') {
-      return jsonResponse({'error': 'Unauthorized: Admin only'}, statusCode: 403);
+      return jsonResponse({'error': 'Unauthorized: Admin only'},
+          statusCode: 403);
     }
 
     try {
@@ -245,7 +267,8 @@ void main() async {
   router.get('/api/products/low-stock', (Request request) async {
     try {
       final conn = await getConnection();
-      final results = await conn.query('SELECT * FROM products WHERE quantity <= low_stock_threshold');
+      final results = await conn.query(
+          'SELECT * FROM products WHERE quantity <= low_stock_threshold');
       await conn.close();
 
       final products = results.map((row) => row.fields).toList();
@@ -255,10 +278,12 @@ void main() async {
     }
   });
 
-  router.get('/api/products/barcode/<code>', (Request request, String code) async {
+  router.get('/api/products/barcode/<code>',
+      (Request request, String code) async {
     try {
       final conn = await getConnection();
-      final results = await conn.query('SELECT * FROM products WHERE barcode = ?', [code]);
+      final results =
+          await conn.query('SELECT * FROM products WHERE barcode = ?', [code]);
       await conn.close();
 
       if (results.isEmpty) {
@@ -293,15 +318,16 @@ void main() async {
             'UPDATE products SET quantity = quantity + ? WHERE id = ? AND quantity + ? >= 0',
             [quantityChange, productId, quantityChange],
           );
-          
+
           if (res.affectedRows == 0) {
-            final exists = await ctx.query('SELECT id FROM products WHERE id = ?', [productId]);
+            final exists = await ctx
+                .query('SELECT id FROM products WHERE id = ?', [productId]);
             if (exists.isEmpty) {
               errorMsg = 'Product not found';
             } else {
               errorMsg = 'Stock cannot fall below zero';
             }
-            throw Exception('Rollback'); 
+            throw Exception('Rollback');
           }
 
           // Log transaction
@@ -314,11 +340,13 @@ void main() async {
       } catch (e) {
         // Fallthrough, 'success' remains false
       }
-      
+
       await conn.close();
 
       if (!success) {
-         return jsonResponse({'error': errorMsg.isNotEmpty ? errorMsg : 'Stock adjustment failed'}, statusCode: 400);
+        return jsonResponse({
+          'error': errorMsg.isNotEmpty ? errorMsg : 'Stock adjustment failed'
+        }, statusCode: 400);
       }
 
       return jsonResponse({'status': 'Stock adjusted and transaction logged'});
@@ -351,7 +379,8 @@ void main() async {
   router.get('/api/reports/stock-value', (Request request) async {
     try {
       final conn = await getConnection();
-      final results = await conn.query('SELECT SUM(quantity * price) AS total_value FROM products');
+      final results = await conn
+          .query('SELECT SUM(quantity * price) AS total_value FROM products');
       await conn.close();
 
       final totalValue = results.first['total_value'] ?? 0;
@@ -366,7 +395,7 @@ void main() async {
   router.get('/api/analytics/stock-summary', (Request request) async {
     try {
       final conn = await getConnection();
-      
+
       // Get counts for different stock levels
       final results = await conn.query('''
         SELECT 
@@ -399,11 +428,13 @@ void main() async {
       ''');
       await conn.close();
 
-      final products = results.map((row) => {
-        'name': row['name'],
-        'quantity': row['quantity'],
-      }).toList();
-      
+      final products = results
+          .map((row) => {
+                'name': row['name'],
+                'quantity': row['quantity'],
+              })
+          .toList();
+
       return jsonResponse(products);
     } catch (e) {
       return jsonResponse({'error': e.toString()}, statusCode: 500);

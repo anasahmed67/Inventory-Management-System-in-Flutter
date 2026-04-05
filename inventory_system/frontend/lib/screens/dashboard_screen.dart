@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/product_provider.dart';
@@ -39,27 +40,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
     // Build the list of nav destinations based on role
     final List<_NavItem> navItems = [
       const _NavItem(
-          icon: Icons.dashboard_rounded,
-          label: 'Dashboard',
-          activeIcon: Icons.dashboard_rounded),
+        icon: Icons.dashboard_rounded,
+        label: 'Dashboard',
+        activeIcon: Icons.dashboard_rounded,
+      ),
       if (isAdmin)
         const _NavItem(
-            icon: Icons.inventory_2_outlined,
-            label: 'Products',
-            activeIcon: Icons.inventory_2_rounded),
+          icon: Icons.inventory_2_outlined,
+          label: 'Products',
+          activeIcon: Icons.inventory_2_rounded,
+        ),
       const _NavItem(
-          icon: Icons.swap_vert_rounded,
-          label: 'Stock Adjust',
-          activeIcon: Icons.swap_vert_rounded),
+        icon: Icons.swap_vert_rounded,
+        label: 'Stock Adjust',
+        activeIcon: Icons.swap_vert_rounded,
+      ),
       const _NavItem(
-          icon: Icons.receipt_long_outlined,
-          label: 'Transactions',
-          activeIcon: Icons.receipt_long_rounded),
+        icon: Icons.receipt_long_outlined,
+        label: 'Transactions',
+        activeIcon: Icons.receipt_long_rounded,
+      ),
       if (isAdmin)
         const _NavItem(
-            icon: Icons.bar_chart_outlined,
-            label: 'Reports',
-            activeIcon: Icons.bar_chart_rounded),
+          icon: Icons.bar_chart_outlined,
+          label: 'Reports',
+          activeIcon: Icons.bar_chart_rounded,
+        ),
     ];
 
     // Clamp selected index
@@ -102,9 +108,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       return Scaffold(
         appBar: AppBar(
           title: Text(currentLabel),
-          actions: [
-            _buildLogoutButton(authProvider),
-          ],
+          actions: [_buildLogoutButton(authProvider)],
         ),
         body: content,
         bottomNavigationBar: _buildBottomNav(navItems),
@@ -119,16 +123,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final role = authProvider.role?.toUpperCase() ?? 'STAFF';
     return Container(
       width: AppTheme.sidebarWidth,
-      decoration: const BoxDecoration(
-        color: AppTheme.sidebarBg,
-      ),
+      decoration: const BoxDecoration(color: AppTheme.sidebarBg),
       child: Column(
         children: [
           const SizedBox(height: AppTheme.spacingLg),
           // Logo
           Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: AppTheme.spacingLg),
+            padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLg),
             child: Row(
               children: [
                 Container(
@@ -138,8 +139,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     color: AppTheme.primary,
                     borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                   ),
-                  child: const Icon(Icons.inventory_2_rounded,
-                      color: Colors.white, size: 22),
+                  child: const Icon(
+                    Icons.inventory_2_rounded,
+                    color: Colors.white,
+                    size: 22,
+                  ),
                 ),
                 const SizedBox(width: AppTheme.spacingMd),
                 const Expanded(
@@ -161,22 +165,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
           // Nav items
           Expanded(
             child: ListView.builder(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: AppTheme.spacingMd),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppTheme.spacingMd,
+              ),
               itemCount: items.length,
               itemBuilder: (context, index) {
                 final item = items[index];
                 final isActive = _selectedIndex == index;
                 return Padding(
-                  padding:
-                      const EdgeInsets.only(bottom: AppTheme.spacingXs),
+                  padding: const EdgeInsets.only(bottom: AppTheme.spacingXs),
                   child: Material(
                     color: Colors.transparent,
-                    borderRadius:
-                        BorderRadius.circular(AppTheme.radiusMd),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                     child: InkWell(
-                      borderRadius:
-                          BorderRadius.circular(AppTheme.radiusMd),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                       onTap: () => setState(() => _selectedIndex = index),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
@@ -188,8 +190,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           color: isActive
                               ? AppTheme.primary
                               : Colors.transparent,
-                          borderRadius:
-                              BorderRadius.circular(AppTheme.radiusMd),
+                          borderRadius: BorderRadius.circular(
+                            AppTheme.radiusMd,
+                          ),
                         ),
                         child: Row(
                           children: [
@@ -241,7 +244,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: Text(
                     role[0],
                     style: const TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.w600),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
                 const SizedBox(width: AppTheme.spacingMd),
@@ -268,13 +273,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
                 InkWell(
-                  borderRadius:
-                      BorderRadius.circular(AppTheme.radiusSm),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                   onTap: () => _confirmLogout(authProvider),
                   child: const Padding(
                     padding: EdgeInsets.all(AppTheme.spacingXs),
-                    child: Icon(Icons.logout_rounded,
-                        color: AppTheme.sidebarText, size: 20),
+                    child: Icon(
+                      Icons.logout_rounded,
+                      color: AppTheme.sidebarText,
+                      size: 20,
+                    ),
                   ),
                 ),
               ],
@@ -295,11 +302,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       backgroundColor: AppTheme.surface,
       indicatorColor: AppTheme.primary.withAlpha(30),
       destinations: items
-          .map((item) => NavigationDestination(
-                icon: Icon(item.icon),
-                selectedIcon: Icon(item.activeIcon, color: AppTheme.primary),
-                label: item.label,
-              ))
+          .map(
+            (item) => NavigationDestination(
+              icon: Icon(item.icon),
+              selectedIcon: Icon(item.activeIcon, color: AppTheme.primary),
+              label: item.label,
+            ),
+          )
           .toList(),
     );
   }
@@ -308,7 +317,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // Dashboard Home Content
   // ════════════════════════════════════════════════════════════════
   Widget _buildDashboardContent(
-      BuildContext context, AuthProvider authProvider) {
+    BuildContext context,
+    AuthProvider authProvider,
+  ) {
     final productProvider = Provider.of<ProductProvider>(context);
     final role = authProvider.role?.toUpperCase() ?? 'STAFF';
     final totalProducts = productProvider.products.length;
@@ -326,7 +337,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       onRefresh: () async {
         await productProvider.fetchProducts();
         if (context.mounted) {
-          await Provider.of<AnalyticsProvider>(context, listen: false).fetchAnalytics();
+          await Provider.of<AnalyticsProvider>(
+            context,
+            listen: false,
+          ).fetchAnalytics();
         }
       },
       child: SingleChildScrollView(
@@ -344,9 +358,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     children: [
                       Text(
                         'Welcome back!',
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineMedium
+                        style: Theme.of(context).textTheme.headlineMedium
                             ?.copyWith(fontWeight: FontWeight.w700),
                       ),
                       const SizedBox(height: 4),
@@ -359,17 +371,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 6),
+                    horizontal: 14,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: AppTheme.surfaceVariant,
-                    borderRadius:
-                        BorderRadius.circular(AppTheme.radiusFull),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.person_outline_rounded,
-                          size: 16, color: AppTheme.primary),
+                      const Icon(
+                        Icons.person_outline_rounded,
+                        size: 16,
+                        color: AppTheme.primary,
+                      ),
                       const SizedBox(width: 6),
                       Text(
                         role,
@@ -387,66 +403,75 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(height: AppTheme.spacingLg),
 
             // ── Stat Cards ──
-            LayoutBuilder(builder: (context, constraints) {
-              final cardWidth =
-                  constraints.maxWidth > 700 ? null : double.infinity;
-              final isWide = constraints.maxWidth > 700;
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final cardWidth = constraints.maxWidth > 700
+                    ? null
+                    : double.infinity;
+                final isWide = constraints.maxWidth > 700;
 
-              final cards = [
-                _buildStatCard(
-                  icon: Icons.inventory_2_rounded,
-                  iconColor: AppTheme.primary,
-                  iconBg: AppTheme.surfaceVariant,
-                  label: 'Total Products',
-                  value: totalProducts.toString(),
-                  width: cardWidth,
-                ),
-                _buildStatCard(
-                  icon: Icons.warning_amber_rounded,
-                  iconColor: AppTheme.danger,
-                  iconBg: AppTheme.dangerLight,
-                  label: 'Low Stock',
-                  value: lowStockCount.toString(),
-                  subtitle: lowStockCount > 0 ? 'Needs attention' : 'All good',
-                  width: cardWidth,
-                ),
-                _buildStatCard(
-                  icon: Icons.attach_money_rounded,
-                  iconColor: AppTheme.success,
-                  iconBg: AppTheme.successLight,
-                  label: 'Total Value',
-                  value: '\$${totalValue.toStringAsFixed(0)}',
-                  width: cardWidth,
-                ),
-              ];
+                final cards = [
+                  _buildStatCard(
+                    icon: Icons.inventory_2_rounded,
+                    iconColor: AppTheme.primary,
+                    iconBg: AppTheme.surfaceVariant,
+                    label: 'Total Products',
+                    value: NumberFormat('#,###').format(totalProducts),
+                    width: cardWidth,
+                  ),
+                  _buildStatCard(
+                    icon: Icons.warning_amber_rounded,
+                    iconColor: AppTheme.danger,
+                    iconBg: AppTheme.dangerLight,
+                    label: 'Low Stock',
+                    value: NumberFormat('#,###').format(lowStockCount),
+                    subtitle: lowStockCount > 0
+                        ? 'Needs attention'
+                        : 'All good',
+                    width: cardWidth,
+                  ),
+                  _buildStatCard(
+                    icon: Icons.payments_rounded,
+                    iconColor: AppTheme.success,
+                    iconBg: AppTheme.successLight,
+                    label: 'Total Value',
+                    value:
+                        '${AppTheme.currencySymbol}${NumberFormat('#,###').format(totalValue.toInt())}',
+                    width: cardWidth,
+                  ),
+                ];
 
-              if (isWide) {
-                return Row(
-                  children: cards
-                      .map((c) => Expanded(
+                if (isWide) {
+                  return Row(
+                    children: cards
+                        .map(
+                          (c) => Expanded(
                             child: Padding(
                               padding: EdgeInsets.only(
-                                right: cards.last == c
-                                    ? 0
-                                    : AppTheme.spacingMd,
+                                right: cards.last == c ? 0 : AppTheme.spacingMd,
                               ),
                               child: c,
                             ),
-                          ))
-                      .toList(),
-                );
-              } else {
-                return Column(
-                  children: cards
-                      .map((c) => Padding(
+                          ),
+                        )
+                        .toList(),
+                  );
+                } else {
+                  return Column(
+                    children: cards
+                        .map(
+                          (c) => Padding(
                             padding: const EdgeInsets.only(
-                                bottom: AppTheme.spacingMd),
+                              bottom: AppTheme.spacingMd,
+                            ),
                             child: c,
-                          ))
-                      .toList(),
-                );
-              }
-            }),
+                          ),
+                        )
+                        .toList(),
+                  );
+                }
+              },
+            ),
             const SizedBox(height: AppTheme.spacingLg),
 
             // ── Low Stock Alert ──
@@ -471,55 +496,68 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   );
                 }
 
-                return LayoutBuilder(builder: (context, constraints) {
-                  final isWide = constraints.maxWidth > 700;
+                return LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isWide = constraints.maxWidth > 700;
 
-                  return Column(
-                    children: [
-                      if (isWide)
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(child: _buildChartCard(
-                              title: 'Stock Health',
-                              child: StockStatusChart(summary: analytics.stockSummary),
-                              height: 300,
-                            )),
-                            const SizedBox(width: AppTheme.spacingLg),
-                            Expanded(child: _buildChartCard(
-                              title: 'Top 5 Products (Qty)',
-                              child: TopProductsChart(products: analytics.topProducts),
-                              height: 300,
-                            )),
-                          ],
-                        )
-                      else ...[
-                        _buildChartCard(
-                          title: 'Stock Health',
-                          child: StockStatusChart(summary: analytics.stockSummary),
-                          height: 250,
-                        ),
+                    return Column(
+                      children: [
+                        if (isWide)
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: _buildChartCard(
+                                  title: 'Stock Health',
+                                  child: StockStatusChart(
+                                    summary: analytics.stockSummary,
+                                  ),
+                                  height: 300,
+                                ),
+                              ),
+                              const SizedBox(width: AppTheme.spacingLg),
+                              Expanded(
+                                child: _buildChartCard(
+                                  title: 'Top 5 Products (Qty)',
+                                  child: TopProductsChart(
+                                    products: analytics.topProducts,
+                                  ),
+                                  height: 300,
+                                ),
+                              ),
+                            ],
+                          )
+                        else ...[
+                          _buildChartCard(
+                            title: 'Stock Health',
+                            child: StockStatusChart(
+                              summary: analytics.stockSummary,
+                            ),
+                            height: 250,
+                          ),
+                          const SizedBox(height: AppTheme.spacingLg),
+                          _buildChartCard(
+                            title: 'Top 5 Products (Qty)',
+                            child: TopProductsChart(
+                              products: analytics.topProducts,
+                            ),
+                            height: 250,
+                          ),
+                        ],
                         const SizedBox(height: AppTheme.spacingLg),
-                        _buildChartCard(
-                          title: 'Top 5 Products (Qty)',
-                          child: TopProductsChart(products: analytics.topProducts),
-                          height: 250,
-                        ),
                       ],
-                      const SizedBox(height: AppTheme.spacingLg),
-                    ],
-                  );
-                });
+                    );
+                  },
+                );
               },
             ),
 
             // ── Quick Actions ──
             Text(
               'Quick Actions',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge
-                  ?.copyWith(fontWeight: FontWeight.w600),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: AppTheme.spacingMd),
             _buildQuickActions(context, authProvider),
@@ -619,7 +657,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Text(
               text,
               style: TextStyle(
-                  color: color, fontWeight: FontWeight.w500, fontSize: 13),
+                color: color,
+                fontWeight: FontWeight.w500,
+                fontSize: 13,
+              ),
             ),
           ),
         ],
@@ -627,8 +668,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildQuickActions(
-      BuildContext context, AuthProvider authProvider) {
+  Widget _buildQuickActions(BuildContext context, AuthProvider authProvider) {
     final isAdmin = authProvider.role == 'admin';
 
     final actions = <_QuickAction>[
@@ -643,15 +683,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         icon: Icons.swap_vert_rounded,
         label: 'Stock\nAdjustment',
         color: AppTheme.success,
-        onTap: () =>
-            setState(() => _selectedIndex = isAdmin ? 2 : 1),
+        onTap: () => setState(() => _selectedIndex = isAdmin ? 2 : 1),
       ),
       _QuickAction(
         icon: Icons.receipt_long_rounded,
         label: 'Transaction\nLogs',
         color: const Color(0xFFE17055),
-        onTap: () =>
-            setState(() => _selectedIndex = isAdmin ? 3 : 2),
+        onTap: () => setState(() => _selectedIndex = isAdmin ? 3 : 2),
       ),
       if (isAdmin)
         _QuickAction(
@@ -662,22 +700,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
     ];
 
-    return LayoutBuilder(builder: (context, constraints) {
-      final crossAxisCount =
-          constraints.maxWidth > 600 ? 4 : 2;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final crossAxisCount = constraints.maxWidth > 600 ? 4 : 2;
 
-      return GridView.count(
-        crossAxisCount: crossAxisCount,
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        mainAxisSpacing: AppTheme.spacingMd,
-        crossAxisSpacing: AppTheme.spacingMd,
-        childAspectRatio: 1.3,
-        children: actions
-            .map((a) => _buildQuickActionCard(a))
-            .toList(),
-      );
-    });
+        return GridView.count(
+          crossAxisCount: crossAxisCount,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: AppTheme.spacingMd,
+          crossAxisSpacing: AppTheme.spacingMd,
+          childAspectRatio: 1.3,
+          children: actions.map((a) => _buildQuickActionCard(a)).toList(),
+        );
+      },
+    );
   }
 
   Widget _buildQuickActionCard(_QuickAction action) {
@@ -701,11 +738,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 height: 48,
                 decoration: BoxDecoration(
                   color: action.color.withAlpha(20),
-                  borderRadius:
-                      BorderRadius.circular(AppTheme.radiusMd),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                 ),
-                child:
-                    Icon(action.icon, color: action.color, size: 24),
+                child: Icon(action.icon, color: action.color, size: 24),
               ),
               const SizedBox(height: AppTheme.spacingSm),
               Text(
@@ -752,8 +787,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   color: AppTheme.textPrimary,
                 ),
               ),
-              if (title == 'Stock Health')
-                _buildLegend(),
+              if (title == 'Stock Health') _buildLegend(),
             ],
           ),
           const SizedBox(height: AppTheme.spacingLg),
@@ -788,7 +822,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         const SizedBox(width: 4),
         Text(
           label,
-          style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            fontSize: 10,
+            color: AppTheme.textSecondary,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ],
     );
@@ -806,21 +844,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _confirmLogout(AuthProvider authProvider) async {
-    final confirm = await showDialog<bool>(
+    final confirm =
+        await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Logout'),
-            content:
-                const Text('Are you sure you want to log out?'),
+            content: const Text('Are you sure you want to log out?'),
             actions: [
               TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Cancel')),
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
               ElevatedButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.danger),
-                  child: const Text('Logout')),
+                onPressed: () => Navigator.pop(context, true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.danger,
+                ),
+                child: const Text('Logout'),
+              ),
             ],
           ),
         ) ??
@@ -837,10 +878,11 @@ class _NavItem {
   final IconData activeIcon;
   final String label;
 
-  const _NavItem(
-      {required this.icon,
-      required this.label,
-      required this.activeIcon});
+  const _NavItem({
+    required this.icon,
+    required this.label,
+    required this.activeIcon,
+  });
 }
 
 class _QuickAction {
@@ -849,9 +891,10 @@ class _QuickAction {
   final Color color;
   final VoidCallback onTap;
 
-  const _QuickAction(
-      {required this.icon,
-      required this.label,
-      required this.color,
-      required this.onTap});
+  const _QuickAction({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
 }

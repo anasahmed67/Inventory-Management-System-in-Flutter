@@ -250,14 +250,14 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildLabel('Price (\$)'),
+                              _buildLabel('Price (${AppTheme.currencySymbol})'),
                               const SizedBox(height: AppTheme.spacingSm),
                               TextFormField(
                                 controller: _priceController,
                                 decoration: const InputDecoration(
                                   hintText: '0.00',
                                   prefixIcon: Icon(
-                                      Icons.attach_money_rounded,
+                                      Icons.payments_rounded,
                                       size: 20),
                                 ),
                                 keyboardType:

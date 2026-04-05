@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   // ── Color Tokens ──────────────────────────────────────────────
+  static const String currencySymbol = 'Rs.';
   static const Color primary = Color(0xFF6C5CE7);
   static const Color primaryLight = Color(0xFFA29BFE);
   static const Color primaryDark = Color(0xFF5A4BD1);
@@ -62,20 +63,20 @@ class AppTheme {
 
   // ── Box Shadows ───────────────────────────────────────────────
   static List<BoxShadow> get cardShadow => [
-        BoxShadow(
-          color: primary.withAlpha(15),
-          blurRadius: 20,
-          offset: const Offset(0, 4),
-        ),
-      ];
+    BoxShadow(
+      color: primary.withAlpha(15),
+      blurRadius: 20,
+      offset: const Offset(0, 4),
+    ),
+  ];
 
   static List<BoxShadow> get softShadow => [
-        BoxShadow(
-          color: Colors.black.withAlpha(10),
-          blurRadius: 10,
-          offset: const Offset(0, 2),
-        ),
-      ];
+    BoxShadow(
+      color: Colors.black.withAlpha(10),
+      blurRadius: 10,
+      offset: const Offset(0, 2),
+    ),
+  ];
 
   // ── Theme Data ────────────────────────────────────────────────
   static ThemeData get lightTheme {
@@ -159,7 +160,10 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: background,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusMd),
           borderSide: BorderSide.none,
@@ -248,7 +252,10 @@ class AppTheme {
       // Chip
       chipTheme: ChipThemeData(
         backgroundColor: surfaceVariant,
-        labelStyle: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500),
+        labelStyle: GoogleFonts.inter(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(radiusFull),
         ),

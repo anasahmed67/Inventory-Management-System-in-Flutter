@@ -6,7 +6,7 @@ class ApiService {
   // Use 10.0.2.2 for Android Emulator, localhost for others (Web, Desktop, iOS Simulator)
   static String get baseUrl {
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-       return 'http://10.0.2.2:8080/api';
+      return 'http://10.0.2.2:8080/api';
     }
     return 'http://127.0.0.1:8080/api';
   }
@@ -35,14 +35,19 @@ class ApiService {
         final decoded = jsonDecode(response.body);
         errorMessage = decoded['error'] ?? 'Unknown error';
       } catch (e) {
-        errorMessage = response.body.isNotEmpty ? response.body : 'Server returned status ${response.statusCode}';
+        errorMessage = response.body.isNotEmpty
+            ? response.body
+            : 'Server returned status ${response.statusCode}';
       }
       throw Exception('API Error (${response.statusCode}): $errorMessage');
     }
   }
 
   // Auth: Login
-  static Future<Map<String, dynamic>> login(String email, String password) async {
+  static Future<Map<String, dynamic>> login(
+    String email,
+    String password,
+  ) async {
     final response = await http.post(
       Uri.parse('$baseUrl/login'),
       body: jsonEncode({'email': email, 'password': password}),
@@ -52,19 +57,30 @@ class ApiService {
   }
 
   // Products: Get by Barcode
-  static Future<Map<String, dynamic>> getProductByBarcode(String barcode) async {
-    final response = await http.get(Uri.parse('$baseUrl/products/barcode/$barcode'), headers: _headers(null));
+  static Future<Map<String, dynamic>> getProductByBarcode(
+    String barcode,
+  ) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/products/barcode/$barcode'),
+      headers: _headers(null),
+    );
     return _processResponse(response);
   }
 
   // Products: Get All
   static Future<List<dynamic>> getProducts() async {
-    final response = await http.get(Uri.parse('$baseUrl/products'), headers: _headers(null));
+    final response = await http.get(
+      Uri.parse('$baseUrl/products'),
+      headers: _headers(null),
+    );
     return _processResponse(response);
   }
 
   // Products: Create
-  static Future<Map<String, dynamic>> createProduct(Map<String, dynamic> product, String role) async {
+  static Future<Map<String, dynamic>> createProduct(
+    Map<String, dynamic> product,
+    String role,
+  ) async {
     final response = await http.post(
       Uri.parse('$baseUrl/products'),
       body: jsonEncode(product),
@@ -74,7 +90,11 @@ class ApiService {
   }
 
   // Products: Update
-  static Future<Map<String, dynamic>> updateProduct(int id, Map<String, dynamic> product, String role) async {
+  static Future<Map<String, dynamic>> updateProduct(
+    int id,
+    Map<String, dynamic> product,
+    String role,
+  ) async {
     final response = await http.put(
       Uri.parse('$baseUrl/products/$id'),
       body: jsonEncode(product),
@@ -85,7 +105,10 @@ class ApiService {
 
   // Products: Delete
   static Future<Map<String, dynamic>> deleteProduct(int id, String role) async {
-    final response = await http.delete(Uri.parse('$baseUrl/products/$id'), headers: _headers(role));
+    final response = await http.delete(
+      Uri.parse('$baseUrl/products/$id'),
+      headers: _headers(role),
+    );
     return _processResponse(response);
   }
 
@@ -112,31 +135,46 @@ class ApiService {
 
   // Products: Get Low Stock
   static Future<List<dynamic>> getLowStock() async {
-    final response = await http.get(Uri.parse('$baseUrl/products/low-stock'), headers: _headers(null));
+    final response = await http.get(
+      Uri.parse('$baseUrl/products/low-stock'),
+      headers: _headers(null),
+    );
     return _processResponse(response);
   }
 
   // Transactions: Get All
   static Future<List<dynamic>> getTransactions() async {
-    final response = await http.get(Uri.parse('$baseUrl/transactions'), headers: _headers(null));
+    final response = await http.get(
+      Uri.parse('$baseUrl/transactions'),
+      headers: _headers(null),
+    );
     return _processResponse(response);
   }
 
   // Reports: Stock Value
   static Future<Map<String, dynamic>> getStockValue() async {
-    final response = await http.get(Uri.parse('$baseUrl/reports/stock-value'), headers: _headers(null));
+    final response = await http.get(
+      Uri.parse('$baseUrl/reports/stock-value'),
+      headers: _headers(null),
+    );
     return _processResponse(response);
   }
 
   // Analytics: Stock Summary (Healthy, Low Stock, Out of Stock)
   static Future<Map<String, dynamic>> getStockSummary() async {
-    final response = await http.get(Uri.parse('$baseUrl/analytics/stock-summary'), headers: _headers(null));
+    final response = await http.get(
+      Uri.parse('$baseUrl/analytics/stock-summary'),
+      headers: _headers(null),
+    );
     return _processResponse(response);
   }
 
   // Analytics: Top Products (Top 5 by quantity)
   static Future<List<dynamic>> getTopProducts() async {
-    final response = await http.get(Uri.parse('$baseUrl/analytics/top-products'), headers: _headers(null));
+    final response = await http.get(
+      Uri.parse('$baseUrl/analytics/top-products'),
+      headers: _headers(null),
+    );
     return _processResponse(response);
   }
 }
