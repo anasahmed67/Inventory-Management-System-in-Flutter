@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/product_provider.dart';
+import '../providers/analytics_provider.dart';
 import '../theme/app_theme.dart';
+import '../widgets/chart_widgets.dart';
 import 'product_list_screen.dart';
 import 'stock_adjust_screen.dart';
 import 'transaction_history_screen.dart';
@@ -23,6 +25,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<ProductProvider>(context, listen: false).fetchProducts();
+      Provider.of<AnalyticsProvider>(context, listen: false).fetchAnalytics();
     });
   }
 
@@ -320,7 +323,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
 
     return RefreshIndicator(
-      onRefresh: () => productProvider.fetchProducts(),
+      onRefresh: () async {
+        await productProvider.fetchProducts();
+        if (context.mounted) {
+          await Provider.of<AnalyticsProvider>(context, listen: false).fetchAnalytics();
+        }
+      },
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(AppTheme.spacingLg),
@@ -452,6 +460,58 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               const SizedBox(height: AppTheme.spacingLg),
             ],
+
+            // ── Analytics Section ──
+            Consumer<AnalyticsProvider>(
+              builder: (context, analytics, _) {
+                if (analytics.isLoading) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 40),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
+
+                return LayoutBuilder(builder: (context, constraints) {
+                  final isWide = constraints.maxWidth > 700;
+
+                  return Column(
+                    children: [
+                      if (isWide)
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(child: _buildChartCard(
+                              title: 'Stock Health',
+                              child: StockStatusChart(summary: analytics.stockSummary),
+                              height: 300,
+                            )),
+                            const SizedBox(width: AppTheme.spacingLg),
+                            Expanded(child: _buildChartCard(
+                              title: 'Top 5 Products (Qty)',
+                              child: TopProductsChart(products: analytics.topProducts),
+                              height: 300,
+                            )),
+                          ],
+                        )
+                      else ...[
+                        _buildChartCard(
+                          title: 'Stock Health',
+                          child: StockStatusChart(summary: analytics.stockSummary),
+                          height: 250,
+                        ),
+                        const SizedBox(height: AppTheme.spacingLg),
+                        _buildChartCard(
+                          title: 'Top 5 Products (Qty)',
+                          child: TopProductsChart(products: analytics.topProducts),
+                          height: 250,
+                        ),
+                      ],
+                      const SizedBox(height: AppTheme.spacingLg),
+                    ],
+                  );
+                });
+              },
+            ),
 
             // ── Quick Actions ──
             Text(
@@ -662,6 +722,75 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildChartCard({
+    required String title,
+    required Widget child,
+    required double height,
+  }) {
+    return Container(
+      height: height,
+      padding: const EdgeInsets.all(AppTheme.spacingLg),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        boxShadow: AppTheme.softShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textPrimary,
+                ),
+              ),
+              if (title == 'Stock Health')
+                _buildLegend(),
+            ],
+          ),
+          const SizedBox(height: AppTheme.spacingLg),
+          Expanded(child: child),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLegend() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _legendItem(AppTheme.success, 'H'),
+        const SizedBox(width: 8),
+        _legendItem(AppTheme.warning, 'L'),
+        const SizedBox(width: 8),
+        _legendItem(AppTheme.danger, 'O'),
+      ],
+    );
+  }
+
+  Widget _legendItem(Color color, String label) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary, fontWeight: FontWeight.bold),
+        ),
+      ],
     );
   }
 

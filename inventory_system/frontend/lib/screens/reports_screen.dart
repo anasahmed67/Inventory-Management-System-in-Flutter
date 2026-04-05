@@ -3,6 +3,8 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
 import '../providers/product_provider.dart';
 import '../services/api_service.dart';
+import '../services/export_service.dart';
+import '../theme/app_theme.dart';
 
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
@@ -92,6 +94,24 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     ),
                   ),
                 ),
+              const SizedBox(height: 32),
+              const Text('Export Reports', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => ExportService.exportProductsToCSV(productProvider.products),
+                      icon: const Icon(Icons.file_download_outlined),
+                      label: const Text('Export CSV'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.success,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 32),
               const Text('Low Stock Alerts', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),

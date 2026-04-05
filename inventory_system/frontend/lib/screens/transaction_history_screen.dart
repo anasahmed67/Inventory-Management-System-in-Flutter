@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../services/export_service.dart';
 import '../theme/app_theme.dart';
 import 'package:intl/intl.dart';
 
@@ -57,10 +58,19 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                     ],
                   ),
                 ),
-                _buildIconButton(
+                 _buildIconButton(
                   icon: Icons.refresh_rounded,
                   tooltip: 'Refresh',
                   onTap: _refresh,
+                ),
+                const SizedBox(width: AppTheme.spacingSm),
+                _buildIconButton(
+                  icon: Icons.file_download_outlined,
+                  tooltip: 'Export CSV',
+                  onTap: () async {
+                    final txs = await _transactionsFuture;
+                    ExportService.exportTransactionsToCSV(txs);
+                  },
                 ),
               ],
             ),

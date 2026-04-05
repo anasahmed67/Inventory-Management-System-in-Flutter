@@ -127,4 +127,16 @@ class ApiService {
     final response = await http.get(Uri.parse('$baseUrl/reports/stock-value'), headers: _headers(null));
     return _processResponse(response);
   }
+
+  // Analytics: Stock Summary (Healthy, Low Stock, Out of Stock)
+  static Future<Map<String, dynamic>> getStockSummary() async {
+    final response = await http.get(Uri.parse('$baseUrl/analytics/stock-summary'), headers: _headers(null));
+    return _processResponse(response);
+  }
+
+  // Analytics: Top Products (Top 5 by quantity)
+  static Future<List<dynamic>> getTopProducts() async {
+    final response = await http.get(Uri.parse('$baseUrl/analytics/top-products'), headers: _headers(null));
+    return _processResponse(response);
+  }
 }

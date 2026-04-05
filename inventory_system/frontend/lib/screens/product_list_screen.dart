@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/product_provider.dart';
+import '../services/export_service.dart';
 import '../theme/app_theme.dart';
 import 'product_form_screen.dart';
 
@@ -65,7 +66,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     ],
                   ),
                 ),
-                if (isAdmin)
+                if (isAdmin) ...[
+                  _buildHeaderIconButton(
+                    icon: Icons.file_download_outlined,
+                    tooltip: 'Export CSV',
+                    onTap: () => ExportService.exportProductsToCSV(productProvider.products),
+                  ),
+                  const SizedBox(width: AppTheme.spacingMd),
                   ElevatedButton.icon(
                     onPressed: () async {
                       await Navigator.push(
@@ -80,6 +87,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     icon: const Icon(Icons.add_rounded, size: 20),
                     label: const Text('Add Product'),
                   ),
+                ],
               ],
             ),
             const SizedBox(height: AppTheme.spacingLg),
@@ -360,6 +368,32 @@ class _ProductListScreenState extends State<ProductListScreen> {
               borderRadius: BorderRadius.circular(AppTheme.radiusSm),
             ),
             child: Icon(icon, color: color, size: 18),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeaderIconButton({
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onTap,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+          onTap: onTap,
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppTheme.surfaceVariant,
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            ),
+            child: Icon(icon, color: AppTheme.primary, size: 20),
           ),
         ),
       ),

@@ -361,6 +361,55 @@ void main() async {
     }
   });
 
+  // --- Analytics Endpoints ---
+
+  router.get('/api/analytics/stock-summary', (Request request) async {
+    try {
+      final conn = await getConnection();
+      
+      // Get counts for different stock levels
+      final results = await conn.query('''
+        SELECT 
+          SUM(CASE WHEN quantity > low_stock_threshold THEN 1 ELSE 0 END) as healthy,
+          SUM(CASE WHEN quantity <= low_stock_threshold AND quantity > 0 THEN 1 ELSE 0 END) as low_stock,
+          SUM(CASE WHEN quantity = 0 THEN 1 ELSE 0 END) as out_of_stock
+        FROM products
+      ''');
+      await conn.close();
+
+      final summary = results.first;
+      return jsonResponse({
+        'healthy': summary['healthy'] ?? 0,
+        'low_stock': summary['low_stock'] ?? 0,
+        'out_of_stock': summary['out_of_stock'] ?? 0,
+      });
+    } catch (e) {
+      return jsonResponse({'error': e.toString()}, statusCode: 500);
+    }
+  });
+
+  router.get('/api/analytics/top-products', (Request request) async {
+    try {
+      final conn = await getConnection();
+      final results = await conn.query('''
+        SELECT name, quantity 
+        FROM products 
+        ORDER BY quantity DESC 
+        LIMIT 5
+      ''');
+      await conn.close();
+
+      final products = results.map((row) => {
+        'name': row['name'],
+        'quantity': row['quantity'],
+      }).toList();
+      
+      return jsonResponse(products);
+    } catch (e) {
+      return jsonResponse({'error': e.toString()}, statusCode: 500);
+    }
+  });
+
   // Middleware and server setup
   final overrideHeaders = {
     'Access-Control-Allow-Origin': '*',
