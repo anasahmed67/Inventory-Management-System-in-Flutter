@@ -97,6 +97,15 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     }
   }
 
+  void _generateSku() {
+    final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+    final randomSuffix = timestamp.substring(timestamp.length - 4);
+    final generatedSku = 'SKU-${DateTime.now().year}$randomSuffix';
+    setState(() {
+      _skuController.text = generatedSku;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -179,9 +188,17 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                     const SizedBox(height: AppTheme.spacingSm),
                     TextFormField(
                       controller: _skuController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         hintText: 'e.g. SKU-001',
-                        prefixIcon: Icon(Icons.tag_rounded, size: 20),
+                        prefixIcon: const Icon(Icons.tag_rounded, size: 20),
+                        suffixIcon: isEdit
+                            ? null
+                            : IconButton(
+                                icon: const Icon(Icons.auto_awesome_rounded,
+                                    size: 20, color: AppTheme.primary),
+                                tooltip: 'Generate SKU',
+                                onPressed: _generateSku,
+                              ),
                       ),
                       validator: (v) => v!.isEmpty ? 'Enter SKU' : null,
                     ),

@@ -13,7 +13,11 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ProductProvider()),
-        ChangeNotifierProvider(create: (_) => AnalyticsProvider()),
+        ChangeNotifierProxyProvider<ProductProvider, AnalyticsProvider>(
+          create: (_) => AnalyticsProvider(),
+          update: (_, productProvider, analyticsProvider) =>
+              analyticsProvider!..updateFromProducts(productProvider.products),
+        ),
       ],
       child: const MyApp(),
     ),

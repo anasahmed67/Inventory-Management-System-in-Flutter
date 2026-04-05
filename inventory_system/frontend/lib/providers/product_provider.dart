@@ -26,6 +26,28 @@ class ProductProvider with ChangeNotifier {
     }
   }
 
+  Future<void> quickAdjustStock({
+    required int productId,
+    required int quantityChange,
+    required int userId,
+    required String role,
+    String reason = "Quick Adjustment",
+  }) async {
+    try {
+      await ApiService.adjustStock(
+        productId: productId,
+        quantityChange: quantityChange,
+        userId: userId,
+        reason: reason,
+        role: role,
+      );
+      await fetchProducts(); // Refresh list to see new quantity
+    } catch (e) {
+      debugPrint('Quick adjust stock error: $e');
+      rethrow;
+    }
+  }
+
   Future<void> addProduct(Map<String, dynamic> product, String role) async {
     try {
       await ApiService.createProduct(product, role);

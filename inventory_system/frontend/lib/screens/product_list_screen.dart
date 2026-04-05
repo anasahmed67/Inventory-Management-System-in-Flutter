@@ -15,6 +15,40 @@ class ProductListScreen extends StatefulWidget {
 
 class _ProductListScreenState extends State<ProductListScreen> {
   String _searchQuery = "";
+  final Set<int> _loadingIds = {};
+
+  void _quickAdjustQuantity(
+      Map<String, dynamic> product, int change, ProductProvider provider, AuthProvider auth) async {
+    final id = product['id'];
+    final currentQty = product['quantity'] ?? 0;
+
+    if (currentQty + change < 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cannot reduce stock below zero'), backgroundColor: AppTheme.danger),
+      );
+      return;
+    }
+
+    setState(() => _loadingIds.add(id));
+    try {
+      await provider.quickAdjustStock(
+        productId: id,
+        quantityChange: change,
+        userId: auth.userId!,
+        role: auth.role!,
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to adjust stock: $e'), backgroundColor: AppTheme.danger),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _loadingIds.remove(id));
+      }
+    }
+  }
 
   @override
   void initState() {
@@ -222,6 +256,29 @@ class _ProductListScreenState extends State<ProductListScreen> {
             ),
             const SizedBox(width: AppTheme.spacingMd),
 
+            // ── Quick Adjust Buttons ──
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildQuickIconButton(
+                  icon: Icons.add_rounded,
+                  color: AppTheme.success,
+                  onTap: _loadingIds.contains(id)
+                      ? null
+                      : () => _quickAdjustQuantity(product, 1, productProvider, authProvider),
+                ),
+                const SizedBox(height: 4),
+                _buildQuickIconButton(
+                  icon: Icons.remove_rounded,
+                  color: AppTheme.danger,
+                  onTap: _loadingIds.contains(id)
+                      ? null
+                      : () => _quickAdjustQuantity(product, -1, productProvider, authProvider),
+                ),
+              ],
+            ),
+            const SizedBox(width: AppTheme.spacingMd),
+
             // ── Info ──
             Expanded(
               child: Column(
@@ -394,6 +451,36 @@ class _ProductListScreenState extends State<ProductListScreen> {
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
             ),
             child: Icon(icon, color: AppTheme.primary, size: 20),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuickIconButton({
+    required IconData icon,
+    required Color color,
+    required VoidCallback? onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+        onTap: onTap,
+        child: Container(
+          width: 24,
+          height: 24,
+          decoration: BoxDecoration(
+            color: color.withAlpha(20),
+            borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+            border: Border.all(color: color.withAlpha(40)),
+          ),
+          child: Center(
+            child: Icon(
+              icon,
+              color: onTap == null ? color.withAlpha(100) : color,
+              size: 16,
+            ),
           ),
         ),
       ),
