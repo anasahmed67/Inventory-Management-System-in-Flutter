@@ -283,33 +283,43 @@ void main() async {
       final type = (quantityChange >= 0) ? 'IN' : 'OUT';
 
       final conn = await getConnection();
-      
-      // Check negative stock
-      final prodResult = await conn.query('SELECT quantity FROM products WHERE id = ?', [productId]);
-      if (prodResult.isEmpty) {
-        await conn.close();
-        return jsonResponse({'error': 'Product not found'}, statusCode: 404);
-      }
-      
-      final currentQty = prodResult.first['quantity'];
-      if (currentQty + quantityChange < 0) {
-        await conn.close();
-        return jsonResponse({'error': 'Stock cannot fall below zero'}, statusCode: 400);
-      }
+      bool success = false;
+      String errorMsg = '';
 
-      await conn.transaction((ctx) async {
-        // Update product quantity
-        await ctx.query(
-          'UPDATE products SET quantity = quantity + ? WHERE id = ?',
-          [quantityChange, productId],
-        );
-        // Log transaction
-        await ctx.query(
-          'INSERT INTO transactions (product_id, user_id, type, quantity, reason) VALUES (?, ?, ?, ?, ?)',
-          [productId, userId, type, quantityChange.abs(), reason],
-        );
-      });
+      try {
+        await conn.transaction((ctx) async {
+          // Update product quantity atomically checking stock level
+          final res = await ctx.query(
+            'UPDATE products SET quantity = quantity + ? WHERE id = ? AND quantity + ? >= 0',
+            [quantityChange, productId, quantityChange],
+          );
+          
+          if (res.affectedRows == 0) {
+            final exists = await ctx.query('SELECT id FROM products WHERE id = ?', [productId]);
+            if (exists.isEmpty) {
+              errorMsg = 'Product not found';
+            } else {
+              errorMsg = 'Stock cannot fall below zero';
+            }
+            throw Exception('Rollback'); 
+          }
+
+          // Log transaction
+          await ctx.query(
+            'INSERT INTO transactions (product_id, user_id, type, quantity, reason) VALUES (?, ?, ?, ?, ?)',
+            [productId, userId, type, quantityChange.abs(), reason],
+          );
+          success = true;
+        });
+      } catch (e) {
+        // Fallthrough, 'success' remains false
+      }
+      
       await conn.close();
+
+      if (!success) {
+         return jsonResponse({'error': errorMsg.isNotEmpty ? errorMsg : 'Stock adjustment failed'}, statusCode: 400);
+      }
 
       return jsonResponse({'status': 'Stock adjusted and transaction logged'});
     } catch (e) {

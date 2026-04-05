@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/product_provider.dart';
+import '../theme/app_theme.dart';
 import 'product_list_screen.dart';
 import 'stock_adjust_screen.dart';
 import 'transaction_history_screen.dart';
@@ -15,6 +16,8 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  int _selectedIndex = 0;
+
   @override
   void initState() {
     super.initState();
@@ -26,156 +29,700 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
-    final productProvider = Provider.of<ProductProvider>(context);
+    final isAdmin = authProvider.role == 'admin';
+    final width = MediaQuery.of(context).size.width;
+    final isWide = width >= 900;
+
+    // Build the list of nav destinations based on role
+    final List<_NavItem> navItems = [
+      const _NavItem(
+          icon: Icons.dashboard_rounded,
+          label: 'Dashboard',
+          activeIcon: Icons.dashboard_rounded),
+      if (isAdmin)
+        const _NavItem(
+            icon: Icons.inventory_2_outlined,
+            label: 'Products',
+            activeIcon: Icons.inventory_2_rounded),
+      const _NavItem(
+          icon: Icons.swap_vert_rounded,
+          label: 'Stock Adjust',
+          activeIcon: Icons.swap_vert_rounded),
+      const _NavItem(
+          icon: Icons.receipt_long_outlined,
+          label: 'Transactions',
+          activeIcon: Icons.receipt_long_rounded),
+      if (isAdmin)
+        const _NavItem(
+            icon: Icons.bar_chart_outlined,
+            label: 'Reports',
+            activeIcon: Icons.bar_chart_rounded),
+    ];
+
+    // Clamp selected index
+    if (_selectedIndex >= navItems.length) {
+      _selectedIndex = 0;
+    }
+
+    // Build the content for the selected index
+    Widget content;
+    final currentLabel = navItems[_selectedIndex].label;
+    switch (currentLabel) {
+      case 'Products':
+        content = const ProductListScreen();
+        break;
+      case 'Stock Adjust':
+        content = const StockAdjustScreen();
+        break;
+      case 'Transactions':
+        content = const TransactionHistoryScreen();
+        break;
+      case 'Reports':
+        content = const ReportsScreen();
+        break;
+      default:
+        content = _buildDashboardContent(context, authProvider);
+    }
+
+    if (isWide) {
+      // ── Desktop: persistent sidebar ──
+      return Scaffold(
+        body: Row(
+          children: [
+            _buildSidebar(navItems, authProvider),
+            Expanded(child: content),
+          ],
+        ),
+      );
+    } else {
+      // ── Mobile: drawer + bottom nav ──
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(currentLabel),
+          actions: [
+            _buildLogoutButton(authProvider),
+          ],
+        ),
+        body: content,
+        bottomNavigationBar: _buildBottomNav(navItems),
+      );
+    }
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // Sidebar (Desktop)
+  // ════════════════════════════════════════════════════════════════
+  Widget _buildSidebar(List<_NavItem> items, AuthProvider authProvider) {
     final role = authProvider.role?.toUpperCase() ?? 'STAFF';
-
-    final lowStockCount = productProvider.lowStockProducts.length;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Dashboard - $role'),
-        actions: [
-          IconButton(
-            onPressed: () async {
-              final confirm = await showDialog<bool>(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Logout'),
-                  content: const Text('Are you sure you want to log out?'),
-                  actions: [
-                    TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-                    TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Logout')),
-                  ],
-                ),
-              ) ?? false;
-              if (confirm) authProvider.logout();
-            },
-            icon: const Icon(Icons.logout),
-            tooltip: 'Logout',
-          ),
-        ],
+    return Container(
+      width: AppTheme.sidebarWidth,
+      decoration: const BoxDecoration(
+        color: AppTheme.sidebarBg,
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final crossAxisCount = constraints.maxWidth > 900 ? 4 : (constraints.maxWidth > 600 ? 3 : 2);
-          
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
+      child: Column(
+        children: [
+          const SizedBox(height: AppTheme.spacingLg),
+          // Logo
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: AppTheme.spacingLg),
+            child: Row(
               children: [
-                // Summary Card
-                Card(
-                  elevation: 4,
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: lowStockCount > 0 ? Colors.red : Colors.green,
-                      child: Icon(
-                        lowStockCount > 0 ? Icons.warning : Icons.check,
-                        color: Colors.white,
-                      ),
-                    ),
-                    title: const Text('Inventory Status'),
-                    subtitle: Text('$lowStockCount items with low stock'),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const ProductListScreen()),
-                      );
-                    },
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                   ),
+                  child: const Icon(Icons.inventory_2_rounded,
+                      color: Colors.white, size: 22),
                 ),
-                const SizedBox(height: 32),
-                // Navigation Buttons (Responsive Grid)
-                GridView.count(
-                  crossAxisCount: crossAxisCount,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  children: [
-                    if (authProvider.role == 'admin')
-                      _buildMenuButton(
-                        context,
-                        title: 'Manage Products',
-                        icon: Icons.inventory_2,
-                        color: Colors.blue,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const ProductListScreen()),
-                          );
-                        },
-                      ),
-                    _buildMenuButton(
-                      context,
-                      title: 'Transaction Logs',
-                      icon: Icons.history,
-                      color: Colors.orange,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const TransactionHistoryScreen()),
-                        );
-                      },
+                const SizedBox(width: AppTheme.spacingMd),
+                const Expanded(
+                  child: Text(
+                    'InvenTrack',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.5,
                     ),
-                    _buildMenuButton(
-                      context,
-                      title: 'Stock Adjustment',
-                      icon: Icons.qr_code_scanner,
-                      color: Colors.green,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const StockAdjustScreen()),
-                        );
-                      },
-                    ),
-                    if (authProvider.role == 'admin')
-                      _buildMenuButton(
-                        context,
-                        title: 'Reports',
-                        icon: Icons.bar_chart,
-                        color: Colors.purple,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const ReportsScreen()),
-                          );
-                        },
-                      ),
-                  ],
+                  ),
                 ),
               ],
             ),
-          );
-        }
+          ),
+          const SizedBox(height: AppTheme.spacingXl),
+
+          // Nav items
+          Expanded(
+            child: ListView.builder(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: AppTheme.spacingMd),
+              itemCount: items.length,
+              itemBuilder: (context, index) {
+                final item = items[index];
+                final isActive = _selectedIndex == index;
+                return Padding(
+                  padding:
+                      const EdgeInsets.only(bottom: AppTheme.spacingXs),
+                  child: Material(
+                    color: Colors.transparent,
+                    borderRadius:
+                        BorderRadius.circular(AppTheme.radiusMd),
+                    child: InkWell(
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.radiusMd),
+                      onTap: () => setState(() => _selectedIndex = index),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppTheme.spacingMd,
+                          vertical: AppTheme.spacingMd - 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isActive
+                              ? AppTheme.primary
+                              : Colors.transparent,
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusMd),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              isActive ? item.activeIcon : item.icon,
+                              color: isActive
+                                  ? Colors.white
+                                  : AppTheme.sidebarText,
+                              size: 20,
+                            ),
+                            const SizedBox(width: AppTheme.spacingMd),
+                            Expanded(
+                              child: Text(
+                                item.label,
+                                style: TextStyle(
+                                  color: isActive
+                                      ? Colors.white
+                                      : AppTheme.sidebarText,
+                                  fontWeight: isActive
+                                      ? FontWeight.w600
+                                      : FontWeight.w400,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+
+          // Bottom: user role badge + logout
+          Container(
+            margin: const EdgeInsets.all(AppTheme.spacingMd),
+            padding: const EdgeInsets.all(AppTheme.spacingMd),
+            decoration: BoxDecoration(
+              color: Colors.white.withAlpha(15),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 18,
+                  backgroundColor: AppTheme.primary,
+                  child: Text(
+                    role[0],
+                    style: const TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.w600),
+                  ),
+                ),
+                const SizedBox(width: AppTheme.spacingMd),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        role,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                      ),
+                      const Text(
+                        'Logged In',
+                        style: TextStyle(
+                          color: AppTheme.sidebarText,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                InkWell(
+                  borderRadius:
+                      BorderRadius.circular(AppTheme.radiusSm),
+                  onTap: () => _confirmLogout(authProvider),
+                  child: const Padding(
+                    padding: EdgeInsets.all(AppTheme.spacingXs),
+                    child: Icon(Icons.logout_rounded,
+                        color: AppTheme.sidebarText, size: 20),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildMenuButton(BuildContext context,
-      {required String title, required IconData icon, required Color color, required VoidCallback onTap}) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(0.5)),
-        ),
+  // ════════════════════════════════════════════════════════════════
+  // Bottom Navigation (Mobile)
+  // ════════════════════════════════════════════════════════════════
+  Widget _buildBottomNav(List<_NavItem> items) {
+    return NavigationBar(
+      selectedIndex: _selectedIndex,
+      onDestinationSelected: (i) => setState(() => _selectedIndex = i),
+      backgroundColor: AppTheme.surface,
+      indicatorColor: AppTheme.primary.withAlpha(30),
+      destinations: items
+          .map((item) => NavigationDestination(
+                icon: Icon(item.icon),
+                selectedIcon: Icon(item.activeIcon, color: AppTheme.primary),
+                label: item.label,
+              ))
+          .toList(),
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // Dashboard Home Content
+  // ════════════════════════════════════════════════════════════════
+  Widget _buildDashboardContent(
+      BuildContext context, AuthProvider authProvider) {
+    final productProvider = Provider.of<ProductProvider>(context);
+    final role = authProvider.role?.toUpperCase() ?? 'STAFF';
+    final totalProducts = productProvider.products.length;
+    final lowStockCount = productProvider.lowStockProducts.length;
+
+    // Calculate total value
+    double totalValue = 0;
+    for (final p in productProvider.products) {
+      final qty = (p['quantity'] ?? 0) as num;
+      final price = double.tryParse(p['price'].toString()) ?? 0;
+      totalValue += qty * price;
+    }
+
+    return RefreshIndicator(
+      onRefresh: () => productProvider.fetchProducts(),
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(AppTheme.spacingLg),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, size: 48, color: color),
-            const SizedBox(height: 8),
-            Text(title,
-                textAlign: TextAlign.center,
-                style: TextStyle(fontWeight: FontWeight.bold, color: color.withOpacity(0.8))),
+            // ── Welcome Header ──
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Welcome back!',
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineMedium
+                            ?.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Here\'s your inventory overview for today',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceVariant,
+                    borderRadius:
+                        BorderRadius.circular(AppTheme.radiusFull),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.person_outline_rounded,
+                          size: 16, color: AppTheme.primary),
+                      const SizedBox(width: 6),
+                      Text(
+                        role,
+                        style: const TextStyle(
+                          color: AppTheme.primary,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppTheme.spacingLg),
+
+            // ── Stat Cards ──
+            LayoutBuilder(builder: (context, constraints) {
+              final cardWidth =
+                  constraints.maxWidth > 700 ? null : double.infinity;
+              final isWide = constraints.maxWidth > 700;
+
+              final cards = [
+                _buildStatCard(
+                  icon: Icons.inventory_2_rounded,
+                  iconColor: AppTheme.primary,
+                  iconBg: AppTheme.surfaceVariant,
+                  label: 'Total Products',
+                  value: totalProducts.toString(),
+                  width: cardWidth,
+                ),
+                _buildStatCard(
+                  icon: Icons.warning_amber_rounded,
+                  iconColor: AppTheme.danger,
+                  iconBg: AppTheme.dangerLight,
+                  label: 'Low Stock',
+                  value: lowStockCount.toString(),
+                  subtitle: lowStockCount > 0 ? 'Needs attention' : 'All good',
+                  width: cardWidth,
+                ),
+                _buildStatCard(
+                  icon: Icons.attach_money_rounded,
+                  iconColor: AppTheme.success,
+                  iconBg: AppTheme.successLight,
+                  label: 'Total Value',
+                  value: '\$${totalValue.toStringAsFixed(0)}',
+                  width: cardWidth,
+                ),
+              ];
+
+              if (isWide) {
+                return Row(
+                  children: cards
+                      .map((c) => Expanded(
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                right: cards.last == c
+                                    ? 0
+                                    : AppTheme.spacingMd,
+                              ),
+                              child: c,
+                            ),
+                          ))
+                      .toList(),
+                );
+              } else {
+                return Column(
+                  children: cards
+                      .map((c) => Padding(
+                            padding: const EdgeInsets.only(
+                                bottom: AppTheme.spacingMd),
+                            child: c,
+                          ))
+                      .toList(),
+                );
+              }
+            }),
+            const SizedBox(height: AppTheme.spacingLg),
+
+            // ── Low Stock Alert ──
+            if (lowStockCount > 0) ...[
+              _buildAlertBanner(
+                icon: Icons.warning_amber_rounded,
+                text:
+                    '$lowStockCount product${lowStockCount > 1 ? 's' : ''} below stock threshold',
+                color: AppTheme.danger,
+                bgColor: AppTheme.dangerLight,
+              ),
+              const SizedBox(height: AppTheme.spacingLg),
+            ],
+
+            // ── Quick Actions ──
+            Text(
+              'Quick Actions',
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: AppTheme.spacingMd),
+            _buildQuickActions(context, authProvider),
           ],
         ),
       ),
     );
   }
+
+  Widget _buildStatCard({
+    required IconData icon,
+    required Color iconColor,
+    required Color iconBg,
+    required String label,
+    required String value,
+    String? subtitle,
+    double? width,
+  }) {
+    return Container(
+      width: width,
+      padding: const EdgeInsets.all(AppTheme.spacingLg),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        boxShadow: AppTheme.softShadow,
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: iconBg,
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            ),
+            child: Icon(icon, color: iconColor, size: 24),
+          ),
+          const SizedBox(width: AppTheme.spacingMd),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppTheme.textHint,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAlertBanner({
+    required IconData icon,
+    required String text,
+    required Color color,
+    required Color bgColor,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppTheme.spacingMd),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        border: Border.all(color: color.withAlpha(60)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(width: AppTheme.spacingMd),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                  color: color, fontWeight: FontWeight.w500, fontSize: 13),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickActions(
+      BuildContext context, AuthProvider authProvider) {
+    final isAdmin = authProvider.role == 'admin';
+
+    final actions = <_QuickAction>[
+      if (isAdmin)
+        _QuickAction(
+          icon: Icons.inventory_2_rounded,
+          label: 'Manage\nProducts',
+          color: AppTheme.primary,
+          onTap: () => setState(() => _selectedIndex = 1),
+        ),
+      _QuickAction(
+        icon: Icons.swap_vert_rounded,
+        label: 'Stock\nAdjustment',
+        color: AppTheme.success,
+        onTap: () =>
+            setState(() => _selectedIndex = isAdmin ? 2 : 1),
+      ),
+      _QuickAction(
+        icon: Icons.receipt_long_rounded,
+        label: 'Transaction\nLogs',
+        color: const Color(0xFFE17055),
+        onTap: () =>
+            setState(() => _selectedIndex = isAdmin ? 3 : 2),
+      ),
+      if (isAdmin)
+        _QuickAction(
+          icon: Icons.bar_chart_rounded,
+          label: 'View\nReports',
+          color: const Color(0xFF6C5CE7),
+          onTap: () => setState(() => _selectedIndex = 4),
+        ),
+    ];
+
+    return LayoutBuilder(builder: (context, constraints) {
+      final crossAxisCount =
+          constraints.maxWidth > 600 ? 4 : 2;
+
+      return GridView.count(
+        crossAxisCount: crossAxisCount,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        mainAxisSpacing: AppTheme.spacingMd,
+        crossAxisSpacing: AppTheme.spacingMd,
+        childAspectRatio: 1.3,
+        children: actions
+            .map((a) => _buildQuickActionCard(a))
+            .toList(),
+      );
+    });
+  }
+
+  Widget _buildQuickActionCard(_QuickAction action) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        onTap: action.onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppTheme.surface,
+            borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+            border: Border.all(color: AppTheme.divider),
+            boxShadow: AppTheme.softShadow,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: action.color.withAlpha(20),
+                  borderRadius:
+                      BorderRadius.circular(AppTheme.radiusMd),
+                ),
+                child:
+                    Icon(action.icon, color: action.color, size: 24),
+              ),
+              const SizedBox(height: AppTheme.spacingSm),
+              Text(
+                action.label,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                  color: AppTheme.textPrimary,
+                  height: 1.3,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // Helpers
+  // ════════════════════════════════════════════════════════════════
+  Widget _buildLogoutButton(AuthProvider authProvider) {
+    return IconButton(
+      onPressed: () => _confirmLogout(authProvider),
+      icon: const Icon(Icons.logout_rounded),
+      tooltip: 'Logout',
+    );
+  }
+
+  void _confirmLogout(AuthProvider authProvider) async {
+    final confirm = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Logout'),
+            content:
+                const Text('Are you sure you want to log out?'),
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Cancel')),
+              ElevatedButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.danger),
+                  child: const Text('Logout')),
+            ],
+          ),
+        ) ??
+        false;
+    if (confirm) authProvider.logout();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Data classes
+// ═══════════════════════════════════════════════════════════════════
+class _NavItem {
+  final IconData icon;
+  final IconData activeIcon;
+  final String label;
+
+  const _NavItem(
+      {required this.icon,
+      required this.label,
+      required this.activeIcon});
+}
+
+class _QuickAction {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _QuickAction(
+      {required this.icon,
+      required this.label,
+      required this.color,
+      required this.onTap});
 }

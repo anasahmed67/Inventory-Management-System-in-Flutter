@@ -25,7 +25,8 @@ CREATE TABLE IF NOT EXISTS products (
     quantity INT DEFAULT 0,
     price DECIMAL(10, 2) NOT NULL,
     low_stock_threshold INT DEFAULT 5, -- New field
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CHECK (quantity >= 0)
 ) ENGINE=InnoDB;
 
 -- Transactions table

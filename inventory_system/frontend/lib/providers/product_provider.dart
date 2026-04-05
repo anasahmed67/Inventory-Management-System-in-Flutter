@@ -19,7 +19,7 @@ class ProductProvider with ChangeNotifier {
     try {
       _products = await ApiService.getProducts();
     } catch (e) {
-      print('Fetch products error: $e');
+      debugPrint('Fetch products error: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -31,7 +31,7 @@ class ProductProvider with ChangeNotifier {
       await ApiService.createProduct(product, role);
       await fetchProducts();
     } catch (e) {
-      print('Add product error: $e');
+      debugPrint('Add product error: $e');
       rethrow;
     }
   }
@@ -41,7 +41,7 @@ class ProductProvider with ChangeNotifier {
       await ApiService.updateProduct(id, product, role);
       await fetchProducts();
     } catch (e) {
-      print('Update product error: $e');
+      debugPrint('Update product error: $e');
       rethrow;
     }
   }
@@ -51,7 +51,7 @@ class ProductProvider with ChangeNotifier {
       await ApiService.deleteProduct(id, role);
       await fetchProducts();
     } catch (e) {
-      print('Delete product error: $e');
+      debugPrint('Delete product error: $e');
       rethrow;
     }
   }

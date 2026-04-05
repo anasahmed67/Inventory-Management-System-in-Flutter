@@ -23,10 +23,21 @@ class ApiService {
   // Helper for handling responses
   static dynamic _processResponse(http.Response response) {
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      return jsonDecode(response.body);
+      if (response.body.isEmpty) return {};
+      try {
+        return jsonDecode(response.body);
+      } catch (e) {
+        return {};
+      }
     } else {
-      final error = jsonDecode(response.body)['error'] ?? 'Unknown error';
-      throw Exception('API Error (${response.statusCode}): $error');
+      String errorMessage = 'Unknown error';
+      try {
+        final decoded = jsonDecode(response.body);
+        errorMessage = decoded['error'] ?? 'Unknown error';
+      } catch (e) {
+        errorMessage = response.body.isNotEmpty ? response.body : 'Server returned status ${response.statusCode}';
+      }
+      throw Exception('API Error (${response.statusCode}): $errorMessage');
     }
   }
 

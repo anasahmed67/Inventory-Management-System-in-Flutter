@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/product_provider.dart';
+import '../theme/app_theme.dart';
 
 class ProductFormScreen extends StatefulWidget {
   final Map<String, dynamic>? product;
@@ -54,11 +55,13 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     };
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final productProvider = Provider.of<ProductProvider>(context, listen: false);
+    final productProvider =
+        Provider.of<ProductProvider>(context, listen: false);
 
     try {
       if (isEdit) {
-        await productProvider.updateProduct(widget.product!['id'], productData, authProvider.role!);
+        await productProvider.updateProduct(
+            widget.product!['id'], productData, authProvider.role!);
       } else {
         await productProvider.addProduct(productData, authProvider.role!);
       }
@@ -66,7 +69,12 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(isEdit ? 'Product updated successfully!' : 'Product added successfully!'), backgroundColor: Colors.green),
+          SnackBar(
+            content: Text(isEdit
+                ? 'Product updated successfully!'
+                : 'Product added successfully!'),
+            backgroundColor: AppTheme.success,
+          ),
         );
       }
     } catch (e) {
@@ -75,9 +83,12 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed: $errorMessage'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.danger,
             duration: const Duration(seconds: 4),
-            action: SnackBarAction(label: 'Dismiss', textColor: Colors.white, onPressed: () {}),
+            action: SnackBarAction(
+                label: 'Dismiss',
+                textColor: Colors.white,
+                onPressed: () {}),
           ),
         );
       }
@@ -89,81 +100,218 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
         title: Text(isEdit ? 'Edit Product' : 'Add New Product'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                controller: _skuController,
-                decoration: const InputDecoration(labelText: 'SKU', border: OutlineInputBorder()),
-                validator: (v) => v!.isEmpty ? 'Enter SKU' : null,
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(AppTheme.spacingLg),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 560),
+            child: Container(
+              padding: const EdgeInsets.all(AppTheme.spacingLg),
+              decoration: BoxDecoration(
+                color: AppTheme.surface,
+                borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                boxShadow: AppTheme.softShadow,
               ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Product Name', border: OutlineInputBorder()),
-                validator: (v) => v!.isEmpty ? 'Enter Name' : null,
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _quantityController,
-                      decoration: const InputDecoration(labelText: 'Quantity', border: OutlineInputBorder()),
-                      keyboardType: TextInputType.number,
-                      validator: (v) {
-                        if (v!.isEmpty) return 'Enter Quantity';
-                        final n = int.tryParse(v);
-                        if (n == null || n < 0) return 'Invalid Qty';
-                        return null;
-                      },
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ── Header ──
+                    Row(
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: AppTheme.surfaceVariant,
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusMd),
+                          ),
+                          child: Icon(
+                            isEdit
+                                ? Icons.edit_rounded
+                                : Icons.add_business_rounded,
+                            color: AppTheme.primary,
+                            size: 22,
+                          ),
+                        ),
+                        const SizedBox(width: AppTheme.spacingMd),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                isEdit
+                                    ? 'Edit Product Details'
+                                    : 'New Product',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleLarge
+                                    ?.copyWith(fontWeight: FontWeight.w600),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                isEdit
+                                    ? 'Update the information below'
+                                    : 'Fill in the product information',
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _priceController,
-                      decoration: const InputDecoration(labelText: 'Price (\$)', border: OutlineInputBorder()),
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      validator: (v) {
-                        if (v!.isEmpty) return 'Enter Price';
-                        final n = double.tryParse(v);
-                        if (n == null || n <= 0) return 'Price > 0';
-                        return null;
-                      },
+                    const SizedBox(height: AppTheme.spacingLg),
+                    const Divider(),
+                    const SizedBox(height: AppTheme.spacingLg),
+
+                    // ── SKU ──
+                    _buildLabel('SKU'),
+                    const SizedBox(height: AppTheme.spacingSm),
+                    TextFormField(
+                      controller: _skuController,
+                      decoration: const InputDecoration(
+                        hintText: 'e.g. SKU-001',
+                        prefixIcon: Icon(Icons.tag_rounded, size: 20),
+                      ),
+                      validator: (v) => v!.isEmpty ? 'Enter SKU' : null,
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _barcodeController,
-                decoration: const InputDecoration(
-                  labelText: 'Barcode',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.qr_code),
+                    const SizedBox(height: AppTheme.spacingMd),
+
+                    // ── Product Name ──
+                    _buildLabel('Product Name'),
+                    const SizedBox(height: AppTheme.spacingSm),
+                    TextFormField(
+                      controller: _nameController,
+                      decoration: const InputDecoration(
+                        hintText: 'e.g. Wireless Mouse',
+                        prefixIcon:
+                            Icon(Icons.inventory_2_outlined, size: 20),
+                      ),
+                      validator: (v) => v!.isEmpty ? 'Enter Name' : null,
+                    ),
+                    const SizedBox(height: AppTheme.spacingMd),
+
+                    // ── Quantity & Price Row ──
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildLabel('Quantity'),
+                              const SizedBox(height: AppTheme.spacingSm),
+                              TextFormField(
+                                controller: _quantityController,
+                                decoration: const InputDecoration(
+                                  hintText: '0',
+                                  prefixIcon:
+                                      Icon(Icons.numbers_rounded, size: 20),
+                                ),
+                                keyboardType: TextInputType.number,
+                                validator: (v) {
+                                  if (v!.isEmpty) return 'Enter Qty';
+                                  final n = int.tryParse(v);
+                                  if (n == null || n < 0) return 'Invalid';
+                                  return null;
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: AppTheme.spacingMd),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildLabel('Price (\$)'),
+                              const SizedBox(height: AppTheme.spacingSm),
+                              TextFormField(
+                                controller: _priceController,
+                                decoration: const InputDecoration(
+                                  hintText: '0.00',
+                                  prefixIcon: Icon(
+                                      Icons.attach_money_rounded,
+                                      size: 20),
+                                ),
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                        decimal: true),
+                                validator: (v) {
+                                  if (v!.isEmpty) return 'Enter Price';
+                                  final n = double.tryParse(v);
+                                  if (n == null || n <= 0) return 'Price > 0';
+                                  return null;
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppTheme.spacingMd),
+
+                    // ── Barcode ──
+                    _buildLabel('Barcode'),
+                    const SizedBox(height: AppTheme.spacingSm),
+                    TextFormField(
+                      controller: _barcodeController,
+                      decoration: const InputDecoration(
+                        hintText: 'e.g. 1234567890',
+                        prefixIcon: Icon(Icons.qr_code_rounded, size: 20),
+                      ),
+                    ),
+                    const SizedBox(height: AppTheme.spacingXl),
+
+                    // ── Submit Button ──
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _saveForm,
+                        child: _isLoading
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : Text(
+                                isEdit ? 'Update Product' : 'Save Product',
+                                style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600),
+                              ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _saveForm,
-                  child: _isLoading 
-                    ? const CircularProgressIndicator()
-                    : Text(isEdit ? 'Update Product' : 'Save Product', style: const TextStyle(fontSize: 18)),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildLabel(String text) {
+    return Text(
+      text,
+      style: const TextStyle(
+        fontWeight: FontWeight.w500,
+        fontSize: 13,
+        color: AppTheme.textPrimary,
       ),
     );
   }

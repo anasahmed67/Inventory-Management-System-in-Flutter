@@ -4,6 +4,7 @@ import 'providers/auth_provider.dart';
 import 'providers/product_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/dashboard_screen.dart';
+import 'theme/app_theme.dart';
 
 void main() {
   runApp(
@@ -24,10 +25,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Inventory Management',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-      ),
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.lightTheme,
       // Use Consumer to conditionally show Login or Dashboard
       home: Consumer<AuthProvider>(
         builder: (context, authProvider, _) {
