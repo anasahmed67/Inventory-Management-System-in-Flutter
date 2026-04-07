@@ -26,7 +26,9 @@ class StockStatusChart extends StatelessWidget {
           PieChartSectionData(
             color: AppTheme.success,
             value: healthy,
-            title: healthy > 0 ? '${((healthy / total) * 100).toStringAsFixed(0)}%' : '',
+            title: healthy > 0
+                ? '${((healthy / total) * 100).toStringAsFixed(0)}%'
+                : '',
             radius: 50,
             titleStyle: const TextStyle(
               fontSize: 12,
@@ -37,7 +39,9 @@ class StockStatusChart extends StatelessWidget {
           PieChartSectionData(
             color: AppTheme.warning,
             value: lowStock,
-            title: lowStock > 0 ? '${((lowStock / total) * 100).toStringAsFixed(0)}%' : '',
+            title: lowStock > 0
+                ? '${((lowStock / total) * 100).toStringAsFixed(0)}%'
+                : '',
             radius: 50,
             titleStyle: const TextStyle(
               fontSize: 12,
@@ -48,7 +52,9 @@ class StockStatusChart extends StatelessWidget {
           PieChartSectionData(
             color: AppTheme.danger,
             value: outOfStock,
-            title: outOfStock > 0 ? '${((outOfStock / total) * 100).toStringAsFixed(0)}%' : '',
+            title: outOfStock > 0
+                ? '${((outOfStock / total) * 100).toStringAsFixed(0)}%'
+                : '',
             radius: 50,
             titleStyle: const TextStyle(
               fontSize: 12,
@@ -76,21 +82,29 @@ class TopProductsChart extends StatelessWidget {
     return BarChart(
       BarChartData(
         alignment: BarChartAlignment.spaceAround,
-        maxY: products.fold<double>(0, (max, p) {
-          final qty = double.tryParse(p['quantity'].toString()) ?? 0;
-          return qty > max ? qty : max;
-        }) * 1.2,
+        maxY:
+            products.fold<double>(0, (max, p) {
+              final qty = double.tryParse(p['quantity'].toString()) ?? 0;
+              return qty > max ? qty : max;
+            }) *
+            1.2,
         barTouchData: BarTouchData(
           enabled: true,
           touchTooltipData: BarTouchTooltipData(
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
               return BarTooltipItem(
                 '${products[groupIndex]['name']}\n',
-                const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
                 children: [
                   TextSpan(
                     text: '${rod.toY.toInt()} units',
-                    style: TextStyle(color: AppTheme.primaryLight, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                      color: AppTheme.primaryLight,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ],
               );
@@ -110,7 +124,10 @@ class TopProductsChart extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 8.0),
                     child: Text(
                       name.length > 8 ? '${name.substring(0, 8)}..' : name,
-                      style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: AppTheme.textSecondary,
+                      ),
                     ),
                   );
                 }
@@ -129,10 +146,14 @@ class TopProductsChart extends StatelessWidget {
             x: index,
             barRods: [
               BarChartRodData(
-                toY: double.tryParse(products[index]['quantity'].toString()) ?? 0,
+                toY:
+                    double.tryParse(products[index]['quantity'].toString()) ??
+                    0,
                 color: AppTheme.primary,
                 width: 16,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(4),
+                ),
               ),
             ],
           );

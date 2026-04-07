@@ -7,7 +7,6 @@
       "name": "inventory_backend",
       "version": "1.0.0",
       "dependencies": [
-        "bcrypt",
         "dotenv",
         "mysql1",
         "shelf",
@@ -62,11 +61,6 @@
         "args",
         "meta"
       ]
-    },
-    {
-      "name": "bcrypt",
-      "version": "1.2.0",
-      "dependencies": []
     },
     {
       "name": "mysql1",

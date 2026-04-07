@@ -1,0 +1,2 @@
+FAILED with User: dart_user, Pass: admin123 - Error: Error 1045 (28000): Access denied for user 'dart_user'@'localhost' (using password: YES)
+SUCCESS with User: root, Pass: null

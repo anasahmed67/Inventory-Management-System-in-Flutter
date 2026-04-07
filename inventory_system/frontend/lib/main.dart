@@ -36,9 +36,9 @@ class MyApp extends StatelessWidget {
       // Use Consumer to conditionally show Login or Dashboard
       home: Consumer<AuthProvider>(
         builder: (context, authProvider, _) {
-          return authProvider.isLoggedIn 
-            ? const DashboardScreen() 
-            : const LoginScreen();
+          return authProvider.isLoggedIn
+              ? const DashboardScreen()
+              : const LoginScreen();
         },
       ),
     );

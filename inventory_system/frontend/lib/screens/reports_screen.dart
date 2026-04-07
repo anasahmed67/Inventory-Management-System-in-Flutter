@@ -37,8 +37,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
     // Calculate Top 5 products by value
     final List<dynamic> sortedProducts = List.from(productProvider.products);
     sortedProducts.sort((a, b) {
-      final valA = (a['quantity'] ?? 0) * (double.tryParse(a['price'].toString()) ?? 0);
-      final valB = (b['quantity'] ?? 0) * (double.tryParse(b['price'].toString()) ?? 0);
+      final valA =
+          (a['quantity'] ?? 0) * (double.tryParse(a['price'].toString()) ?? 0);
+      final valB =
+          (b['quantity'] ?? 0) * (double.tryParse(b['price'].toString()) ?? 0);
       return valB.compareTo(valA);
     });
 
@@ -57,7 +59,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
               FutureBuilder<Map<String, dynamic>>(
                 future: _stockValueFuture,
                 builder: (context, snapshot) {
-                  final value = snapshot.data?['total_stock_value']?.toString() ?? '...';
+                  final value =
+                      snapshot.data?['total_stock_value']?.toString() ?? '...';
                   return Card(
                     color: Colors.blue.shade700,
                     child: Container(
@@ -65,10 +68,22 @@ class _ReportsScreenState extends State<ReportsScreen> {
                       padding: const EdgeInsets.all(24.0),
                       child: Column(
                         children: [
-                          const Text('Total Inventory Value', style: TextStyle(color: Colors.white70, fontSize: 16)),
+                          const Text(
+                            'Total Inventory Value',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 16,
+                            ),
+                          ),
                           const SizedBox(height: 8),
-                          Text('${AppTheme.currencySymbol}${NumberFormat('#,###').format(double.tryParse(value) ?? 0)}',
-                              style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
+                          Text(
+                            '${AppTheme.currencySymbol}${NumberFormat('#,###').format(double.tryParse(value) ?? 0)}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -76,7 +91,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 },
               ),
               const SizedBox(height: 32),
-              const Text('Top 5 Products by Value', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const Text(
+                'Top 5 Products by Value',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 16),
               if (top5.isNotEmpty)
                 SizedBox(
@@ -84,11 +102,20 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   child: PieChart(
                     PieChartData(
                       sections: top5.map((p) {
-                        final val = (p['quantity'] ?? 0) * (double.tryParse(p['price'].toString()) ?? 0);
+                        final val =
+                            (p['quantity'] ?? 0) *
+                            (double.tryParse(p['price'].toString()) ?? 0);
                         return PieChartSectionData(
                           value: val,
-                          title: p['name'].toString().substring(0, p['name'].toString().length > 5 ? 5 : p['name'].toString().length),
-                          color: Colors.primaries[top5.indexOf(p) % Colors.primaries.length],
+                          title: p['name'].toString().substring(
+                            0,
+                            p['name'].toString().length > 5
+                                ? 5
+                                : p['name'].toString().length,
+                          ),
+                          color:
+                              Colors.primaries[top5.indexOf(p) %
+                                  Colors.primaries.length],
                           radius: 50,
                         );
                       }).toList(),
@@ -96,13 +123,18 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   ),
                 ),
               const SizedBox(height: 32),
-              const Text('Export Reports', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const Text(
+                'Export Reports',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: () => ExportService.exportProductsToCSV(productProvider.products),
+                      onPressed: () => ExportService.exportProductsToCSV(
+                        productProvider.products,
+                      ),
                       icon: const Icon(Icons.file_download_outlined),
                       label: const Text('Export CSV'),
                       style: ElevatedButton.styleFrom(
@@ -114,7 +146,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 ],
               ),
               const SizedBox(height: 32),
-              const Text('Low Stock Alerts', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const Text(
+                'Low Stock Alerts',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 16),
               if (productProvider.lowStockProducts.isEmpty)
                 const Card(
@@ -132,14 +167,20 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         title: Text(item['name']),
                         subtitle: Text('SKU: ${item['sku']}'),
                         trailing: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.red.shade100,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
                             'Qty: ${item['quantity']}',
-                            style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),

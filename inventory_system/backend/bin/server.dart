@@ -7,7 +7,6 @@ import 'package:shelf/shelf_io.dart';
 import 'package:shelf_router/shelf_router.dart';
 import 'package:shelf_cors_headers/shelf_cors_headers.dart';
 import 'package:mysql1/mysql1.dart';
-import 'package:bcrypt/bcrypt.dart';
 import 'package:dotenv/dotenv.dart';
 
 void main() async {
@@ -16,8 +15,9 @@ void main() async {
   final dbHost = env['DB_HOST'] ?? 'localhost';
   final dbPort = int.tryParse(env['DB_PORT'] ?? '3306') ?? 3306;
   final dbUser = env['DB_USER'] ?? 'root';
-  final dbPass = env['DB_PASSWORD'] ?? '';
-  final dbName = env['DB_NAME'] ?? 'inventory_system';
+  final dbPass = (env['DB_PASSWORD']?.isEmpty ?? true) ? null : env['DB_PASSWORD'];
+  final dbName = env['DB_NAME'] ?? 'inventory_db';
+  final serverPort = int.tryParse(env['PORT'] ?? '8080') ?? 8080;
 
   // Database Connection Pool
   final dbSettings = ConnectionSettings(
@@ -29,7 +29,7 @@ void main() async {
   );
 
   print(
-      'Database Settings: Host=$dbHost, User=$dbUser, DB=$dbName, PasswordUsed=${dbPass.isNotEmpty}');
+      'Database Settings: Host=$dbHost, User=$dbUser, DB=$dbName, PasswordUsed=${dbPass?.isNotEmpty ?? false}');
 
   // Connection manager helper
   Future<MySqlConnection> getConnection() async {
@@ -83,7 +83,12 @@ void main() async {
 
       print('--- Login Attempt ---');
       print('Email: $email');
-      print('Password: $password');
+      print('Password provided: ${password != null && password.toString().isNotEmpty}');
+
+      if (email == null || password == null) {
+        return jsonResponse({'error': 'Email and password are required'},
+            statusCode: 400);
+      }
 
       final conn = await getConnection();
       final results = await conn.query(
@@ -98,12 +103,12 @@ void main() async {
       }
 
       final user = results.first;
-      final storedPassword = user['password'];
+      final storedPassword = _convertToSerializable(user['password']).toString();
 
       print('User found in DB. Stored Password: $storedPassword');
 
-      // Comparing passwords directly as plain text (Removing BCrypt)
-      if (password != storedPassword) {
+      // Plain text comparison only (hashing removed)
+      if (password.toString() != storedPassword) {
         print('Password mismatch.');
         return jsonResponse({'error': 'Invalid credentials'}, statusCode: 401);
       }
@@ -454,11 +459,7 @@ void main() async {
       .addMiddleware(corsHeaders(headers: overrideHeaders))
       .addHandler(router);
 
-  final server = await serve(handler, InternetAddress.anyIPv4, 8080);
+  final server = await serve(handler, InternetAddress.anyIPv4, serverPort);
   print('Server listening on port ${server.port}');
 }
 
-// TODO: Helper for password hashing if needed in code (already used BCrypt in login)
-String hashPassword(String password) {
-  return BCrypt.hashpw(password, BCrypt.gensalt());
-}

@@ -10,7 +10,7 @@ CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
     email VARCHAR(100) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL, -- Hashed password using bcrypt
+    password VARCHAR(255) NOT NULL, -- Plain text password (not recommended for production)
     role ENUM('admin', 'staff') DEFAULT 'staff',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;

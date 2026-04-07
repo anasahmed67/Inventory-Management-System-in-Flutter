@@ -84,7 +84,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         content = const StockAdjustScreen();
         break;
       case 'Transactions':
-        content = const TransactionHistoryScreen();
+        content = TransactionHistoryScreen();
         break;
       case 'Reports':
         content = const ReportsScreen();

@@ -55,13 +55,18 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     };
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final productProvider =
-        Provider.of<ProductProvider>(context, listen: false);
+    final productProvider = Provider.of<ProductProvider>(
+      context,
+      listen: false,
+    );
 
     try {
       if (isEdit) {
         await productProvider.updateProduct(
-            widget.product!['id'], productData, authProvider.role!);
+          widget.product!['id'],
+          productData,
+          authProvider.role!,
+        );
       } else {
         await productProvider.addProduct(productData, authProvider.role!);
       }
@@ -70,9 +75,11 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(isEdit
-                ? 'Product updated successfully!'
-                : 'Product added successfully!'),
+            content: Text(
+              isEdit
+                  ? 'Product updated successfully!'
+                  : 'Product added successfully!',
+            ),
             backgroundColor: AppTheme.success,
           ),
         );
@@ -86,9 +93,10 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
             backgroundColor: AppTheme.danger,
             duration: const Duration(seconds: 4),
             action: SnackBarAction(
-                label: 'Dismiss',
-                textColor: Colors.white,
-                onPressed: () {}),
+              label: 'Dismiss',
+              textColor: Colors.white,
+              onPressed: () {},
+            ),
           ),
         );
       }
@@ -142,8 +150,9 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                           height: 44,
                           decoration: BoxDecoration(
                             color: AppTheme.surfaceVariant,
-                            borderRadius:
-                                BorderRadius.circular(AppTheme.radiusMd),
+                            borderRadius: BorderRadius.circular(
+                              AppTheme.radiusMd,
+                            ),
                           ),
                           child: Icon(
                             isEdit
@@ -159,12 +168,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                isEdit
-                                    ? 'Edit Product Details'
-                                    : 'New Product',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleLarge
+                                isEdit ? 'Edit Product Details' : 'New Product',
+                                style: Theme.of(context).textTheme.titleLarge
                                     ?.copyWith(fontWeight: FontWeight.w600),
                               ),
                               const SizedBox(height: 2),
@@ -194,8 +199,11 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                         suffixIcon: isEdit
                             ? null
                             : IconButton(
-                                icon: const Icon(Icons.auto_awesome_rounded,
-                                    size: 20, color: AppTheme.primary),
+                                icon: const Icon(
+                                  Icons.auto_awesome_rounded,
+                                  size: 20,
+                                  color: AppTheme.primary,
+                                ),
                                 tooltip: 'Generate SKU',
                                 onPressed: _generateSku,
                               ),
@@ -211,8 +219,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                       controller: _nameController,
                       decoration: const InputDecoration(
                         hintText: 'e.g. Wireless Mouse',
-                        prefixIcon:
-                            Icon(Icons.inventory_2_outlined, size: 20),
+                        prefixIcon: Icon(Icons.inventory_2_outlined, size: 20),
                       ),
                       validator: (v) => v!.isEmpty ? 'Enter Name' : null,
                     ),
@@ -231,8 +238,10 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                                 controller: _quantityController,
                                 decoration: const InputDecoration(
                                   hintText: '0',
-                                  prefixIcon:
-                                      Icon(Icons.numbers_rounded, size: 20),
+                                  prefixIcon: Icon(
+                                    Icons.numbers_rounded,
+                                    size: 20,
+                                  ),
                                 ),
                                 keyboardType: TextInputType.number,
                                 validator: (v) {
@@ -257,12 +266,14 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                                 decoration: const InputDecoration(
                                   hintText: '0.00',
                                   prefixIcon: Icon(
-                                      Icons.payments_rounded,
-                                      size: 20),
+                                    Icons.payments_rounded,
+                                    size: 20,
+                                  ),
                                 ),
                                 keyboardType:
                                     const TextInputType.numberWithOptions(
-                                        decimal: true),
+                                      decimal: true,
+                                    ),
                                 validator: (v) {
                                   if (v!.isEmpty) return 'Enter Price';
                                   final n = double.tryParse(v);
@@ -307,8 +318,9 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                             : Text(
                                 isEdit ? 'Update Product' : 'Save Product',
                                 style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                       ),
                     ),

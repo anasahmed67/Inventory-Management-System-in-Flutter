@@ -23,7 +23,7 @@ A full-stack inventory management solution built with a **Flutter** frontend and
 ### 1. Database Setup
 1. Start **XAMPP** and turn on **MySQL**.
 2. Open **phpMyAdmin** (usually `http://localhost/phpmyadmin`).
-3. Create a new database named `inventory_system`.
+3. Create a new database named `inventory_db`.
 4. Import the schema file located at `database/schema.sql` into the newly created database.
 
 ### 2. Backend Configuration
@@ -61,6 +61,9 @@ A full-stack inventory management solution built with a **Flutter** frontend and
 | :--- | :--- | :--- |
 | **Admin** | `admin@example.com` | `admin123` |
 | **Staff** | `staff@example.com` | `staff123` |
+
+> Note: For local development, passwords are stored in plain text in the sample data.
+> Do not use this in production; always store hashed passwords.
 
 ## 📱 Platforms Tested
 - **Chrome (Desktop/Web)**: Full management and reporting capabilities.

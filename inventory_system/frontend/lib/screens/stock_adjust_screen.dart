@@ -38,8 +38,9 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text('Product not found: $e'),
-            backgroundColor: AppTheme.danger),
+          content: Text('Product not found: $e'),
+          backgroundColor: AppTheme.danger,
+        ),
       );
     }
   }
@@ -76,15 +77,18 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
     if (currentQuantity + quantityChange < 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('Error: Stock cannot fall below zero.'),
-            backgroundColor: AppTheme.danger),
+          content: Text('Error: Stock cannot fall below zero.'),
+          backgroundColor: AppTheme.danger,
+        ),
       );
       return;
     }
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final productProvider =
-        Provider.of<ProductProvider>(context, listen: false);
+    final productProvider = Provider.of<ProductProvider>(
+      context,
+      listen: false,
+    );
 
     setState(() => _isLoading = true);
     try {
@@ -99,19 +103,27 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('Stock updated successfully!'),
-              backgroundColor: AppTheme.success),
+            content: Text('Stock updated successfully!'),
+            backgroundColor: AppTheme.success,
+          ),
         );
         productProvider.fetchProducts(); // Refresh status
-        Navigator.pop(context);
+        setState(() {
+          _selectedProduct = null;
+          _barcodeController.clear();
+          _quantityController.clear();
+          _reasonController.clear();
+          _isLoading = false;
+        });
       }
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Error: $e'),
-              backgroundColor: AppTheme.danger),
+            content: Text('Error: $e'),
+            backgroundColor: AppTheme.danger,
+          ),
         );
       }
     }
@@ -132,10 +144,9 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
                 // ── Header ──
                 Text(
                   'Stock Adjustment',
-                  style: Theme.of(context)
-                      .textTheme
-                      .headlineMedium
-                      ?.copyWith(fontWeight: FontWeight.w700),
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -157,8 +168,10 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
                               controller: _barcodeController,
                               decoration: const InputDecoration(
                                 hintText: 'Enter barcode...',
-                                prefixIcon:
-                                    Icon(Icons.qr_code_rounded, size: 20),
+                                prefixIcon: Icon(
+                                  Icons.qr_code_rounded,
+                                  size: 20,
+                                ),
                               ),
                               onSubmitted: (_) => _searchProduct(),
                             ),
@@ -179,8 +192,7 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
                           icon: const Icon(Icons.search_rounded, size: 18),
                           label: const Text('Search Product'),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                AppTheme.primary.withAlpha(20),
+                            backgroundColor: AppTheme.primary.withAlpha(20),
                             foregroundColor: AppTheme.primary,
                             elevation: 0,
                           ),
@@ -194,11 +206,9 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
                 // ── Loading ──
                 if (_isLoading)
                   const Padding(
-                    padding: EdgeInsets.symmetric(
-                        vertical: AppTheme.spacingXl),
+                    padding: EdgeInsets.symmetric(vertical: AppTheme.spacingXl),
                     child: Center(
-                      child: CircularProgressIndicator(
-                          color: AppTheme.primary),
+                      child: CircularProgressIndicator(color: AppTheme.primary),
                     ),
                   )
                 else if (_selectedProduct != null) ...[
@@ -208,12 +218,10 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
                     title: 'Product Found',
                     child: Container(
                       width: double.infinity,
-                      padding:
-                          const EdgeInsets.all(AppTheme.spacingMd),
+                      padding: const EdgeInsets.all(AppTheme.spacingMd),
                       decoration: BoxDecoration(
                         color: AppTheme.surfaceVariant,
-                        borderRadius: BorderRadius.circular(
-                            AppTheme.radiusMd),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                       ),
                       child: Row(
                         children: [
@@ -223,17 +231,18 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
                             decoration: BoxDecoration(
                               color: AppTheme.primary.withAlpha(20),
                               borderRadius: BorderRadius.circular(
-                                  AppTheme.radiusMd),
+                                AppTheme.radiusMd,
+                              ),
                             ),
                             child: const Icon(
-                                Icons.inventory_2_rounded,
-                                color: AppTheme.primary),
+                              Icons.inventory_2_rounded,
+                              color: AppTheme.primary,
+                            ),
                           ),
                           const SizedBox(width: AppTheme.spacingMd),
                           Expanded(
                             child: Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   _selectedProduct!['name'],
@@ -254,15 +263,15 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
                                       ),
                                     ),
                                     Container(
-                                      padding:
-                                          const EdgeInsets.symmetric(
-                                              horizontal: 10,
-                                              vertical: 2),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 2,
+                                      ),
                                       decoration: BoxDecoration(
                                         color: AppTheme.primary,
-                                        borderRadius:
-                                            BorderRadius.circular(
-                                                AppTheme.radiusFull),
+                                        borderRadius: BorderRadius.circular(
+                                          AppTheme.radiusFull,
+                                        ),
                                       ),
                                       child: Text(
                                         '${_selectedProduct!['quantity']}',
@@ -297,9 +306,7 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
                           controller: _quantityController,
                           decoration: const InputDecoration(
                             hintText: 'e.g. 5 or -2',
-                            prefixIcon: Icon(
-                                Icons.swap_vert_rounded,
-                                size: 20),
+                            prefixIcon: Icon(Icons.swap_vert_rounded, size: 20),
                             helperText:
                                 'Positive = Stock IN, Negative = Stock OUT',
                           ),
@@ -311,11 +318,8 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
                         TextField(
                           controller: _reasonController,
                           decoration: const InputDecoration(
-                            hintText:
-                                'e.g., Sale, Restock, Damage',
-                            prefixIcon: Icon(
-                                Icons.notes_rounded,
-                                size: 20),
+                            hintText: 'e.g., Sale, Restock, Damage',
+                            prefixIcon: Icon(Icons.notes_rounded, size: 20),
                           ),
                         ),
                         const SizedBox(height: AppTheme.spacingLg),
@@ -325,13 +329,15 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
                           child: ElevatedButton.icon(
                             onPressed: _submitAdjustment,
                             icon: const Icon(
-                                Icons.check_circle_outline_rounded,
-                                size: 20),
+                              Icons.check_circle_outline_rounded,
+                              size: 20,
+                            ),
                             label: const Text(
                               'Confirm Adjustment',
                               style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ),
@@ -370,8 +376,7 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
                 height: 28,
                 decoration: BoxDecoration(
                   color: AppTheme.primary,
-                  borderRadius:
-                      BorderRadius.circular(AppTheme.radiusFull),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                 ),
                 child: Center(
                   child: Text(
@@ -419,8 +424,7 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
             height: 48,
             decoration: BoxDecoration(
               color: AppTheme.surfaceVariant,
-              borderRadius:
-                  BorderRadius.circular(AppTheme.radiusMd),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
               border: Border.all(color: AppTheme.divider),
             ),
             child: Icon(icon, color: AppTheme.primary, size: 24),
