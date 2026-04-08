@@ -675,26 +675,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (isAdmin)
         _QuickAction(
           icon: Icons.inventory_2_rounded,
-          label: 'Manage\nProducts',
+          label: 'Manage Products',
           color: AppTheme.primary,
           onTap: () => setState(() => _selectedIndex = 1),
         ),
       _QuickAction(
         icon: Icons.swap_vert_rounded,
-        label: 'Stock\nAdjustment',
+        label: 'Stock Adjustment',
         color: AppTheme.success,
         onTap: () => setState(() => _selectedIndex = isAdmin ? 2 : 1),
       ),
       _QuickAction(
         icon: Icons.receipt_long_rounded,
-        label: 'Transaction\nLogs',
+        label: 'Transaction Logs',
         color: const Color(0xFFE17055),
         onTap: () => setState(() => _selectedIndex = isAdmin ? 3 : 2),
       ),
       if (isAdmin)
         _QuickAction(
           icon: Icons.bar_chart_rounded,
-          label: 'View\nReports',
+          label: 'View Reports',
           color: const Color(0xFF6C5CE7),
           onTap: () => setState(() => _selectedIndex = 4),
         ),
@@ -703,6 +703,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final crossAxisCount = constraints.maxWidth > 600 ? 4 : 2;
+        final aspectRatio = constraints.maxWidth > 600 ? 2.5 : 2.8;
 
         return GridView.count(
           crossAxisCount: crossAxisCount,
@@ -710,7 +711,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           physics: const NeverScrollableScrollPhysics(),
           mainAxisSpacing: AppTheme.spacingMd,
           crossAxisSpacing: AppTheme.spacingMd,
-          childAspectRatio: 1.3,
+          childAspectRatio: aspectRatio,
           children: actions.map((a) => _buildQuickActionCard(a)).toList(),
         );
       },
@@ -724,33 +725,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
         borderRadius: BorderRadius.circular(AppTheme.radiusLg),
         onTap: action.onTap,
         child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMd),
           decoration: BoxDecoration(
             color: AppTheme.surface,
             borderRadius: BorderRadius.circular(AppTheme.radiusLg),
             border: Border.all(color: AppTheme.divider),
             boxShadow: AppTheme.softShadow,
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Row(
             children: [
               Container(
-                width: 48,
-                height: 48,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
                   color: action.color.withAlpha(20),
                   borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                 ),
-                child: Icon(action.icon, color: action.color, size: 24),
+                child: Icon(action.icon, color: action.color, size: 20),
               ),
-              const SizedBox(height: AppTheme.spacingSm),
-              Text(
-                action.label,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                  color: AppTheme.textPrimary,
-                  height: 1.3,
+              const SizedBox(width: AppTheme.spacingMd),
+              Expanded(
+                child: Text(
+                  action.label,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    color: AppTheme.textPrimary,
+                  ),
                 ),
               ),
             ],
