@@ -72,52 +72,27 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F4F7),
+      backgroundColor: AppTheme.background,
       body: Stack(
         children: [
-          // ── Background Decorative Elements ──
-          Positioned(
-            top: -100,
-            left: -100,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppTheme.primary.withAlpha(20),
-              ),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
-                child: Container(color: Colors.transparent),
-              ),
+          // ── Neo-Brutalist Grid Background ──
+          Positioned.fill(
+            child: CustomPaint(
+              painter: GridPainter(),
             ),
           ),
-
-          // ── Dark Mode Toggle (Visual) ──
+          
+          // ── Decorative Shapes ──
           Positioned(
-            top: AppTheme.spacingLg,
-            right: AppTheme.spacingLg,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withAlpha(10),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.dark_mode_outlined, size: 20),
-                onPressed: () {
-                  // This is visual for now, as requested
-                },
-              ),
-            ),
+            top: -100,
+            right: -100,
+            child: _buildDecorativeCircle(AppTheme.primary.withOpacity(0.1), 300),
+          ),
+          Positioned(
+            bottom: -50,
+            left: -50,
+            child: _buildDecorativeCircle(AppTheme.success.withOpacity(0.1), 200),
           ),
 
           // ── Main Content ──
@@ -140,14 +115,9 @@ class _LoginScreenState extends State<LoginScreen>
                       ),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(AppTheme.radiusXl * 1.5),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withAlpha(15),
-                            blurRadius: 40,
-                            offset: const Offset(0, 20),
-                          ),
-                        ],
+                        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                        border: Border.all(color: Colors.black, width: AppTheme.borderWidth),
+                        boxShadow: AppTheme.cardShadow,
                       ),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -157,33 +127,37 @@ class _LoginScreenState extends State<LoginScreen>
                             width: 80,
                             height: 80,
                             decoration: BoxDecoration(
-                              color: AppTheme.primary.withAlpha(30),
-                              shape: BoxShape.circle,
+                              color: AppTheme.warning,
+                              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                              border: Border.all(color: Colors.black, width: AppTheme.borderWidth),
                             ),
                             child: const Icon(
                               Icons.inventory_2_rounded,
-                              size: 32,
-                              color: AppTheme.primary,
+                              size: 36,
+                              color: Colors.black,
                             ),
                           ),
                           const SizedBox(height: AppTheme.spacingMd),
 
                           // ── Title ──
-                          Text(
-                            'Welcome Back',
-                            style: Theme.of(context).textTheme.headlineMedium
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: AppTheme.textPrimary,
-                                  letterSpacing: -0.5,
-                                ),
+                          const Text(
+                            'WELCOME BACK',
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w900,
+                              color: AppTheme.textPrimary,
+                              letterSpacing: -1.0,
+                            ),
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Sign in to continue your inventory journey',
+                          const SizedBox(height: 4),
+                          const Text(
+                            'SIGN IN TO ACCESS YOUR INVENTORY',
                             textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
                               color: AppTheme.textSecondary,
+                              letterSpacing: 0.5,
                             ),
                           ),
                           const SizedBox(height: AppTheme.spacingLg),
@@ -219,41 +193,32 @@ class _LoginScreenState extends State<LoginScreen>
 
                           const SizedBox(height: AppTheme.spacingMd),
 
-                          // ── Sign In Button ──
+                           // ── Sign In Button ──
                           SizedBox(
                             width: double.infinity,
                             height: 54,
                             child: ElevatedButton(
                               onPressed: _isLoading ? null : _handleLogin,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF1E293B), // Dark slate/teal tone
-                                foregroundColor: Colors.white,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                                ),
-                              ),
                               child: _isLoading
                                   ? const SizedBox(
                                       width: 20,
                                       height: 20,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2,
-                                        color: Colors.white,
+                                        color: Colors.black,
                                       ),
                                     )
                                   : const Text(
                                       'SIGN IN',
                                       style: TextStyle(
                                         fontSize: 14,
-                                        fontWeight: FontWeight.w700,
+                                        fontWeight: FontWeight.w900,
                                         letterSpacing: 1.2,
                                       ),
                                     ),
                             ),
                           ),
                           const SizedBox(height: AppTheme.spacingMd),
-
                         ],
                       ),
                     ),
@@ -267,6 +232,17 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
+  Widget _buildDecorativeCircle(Color color, double size) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+      ),
+    );
+  }
+
   Widget _buildTextField({
     required TextEditingController controller,
     required String hintText,
@@ -275,29 +251,15 @@ class _LoginScreenState extends State<LoginScreen>
     Widget? suffixIcon,
     TextInputType? keyboardType,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFF3F4F6),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-      ),
-      child: TextField(
-        controller: controller,
-        obscureText: obscureText,
-        keyboardType: keyboardType,
-        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-        decoration: InputDecoration(
-          hintText: hintText,
-          hintStyle: const TextStyle(color: AppTheme.textHint, fontSize: 14),
-          prefixIcon: Icon(prefixIcon, color: AppTheme.textSecondary, size: 20),
-          suffixIcon: suffixIcon,
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-            borderSide: const BorderSide(color: AppTheme.primary, width: 1.5),
-          ),
-          contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-        ),
+    return TextField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black),
+      decoration: InputDecoration(
+        hintText: hintText,
+        prefixIcon: Icon(prefixIcon, size: 20),
+        suffixIcon: suffixIcon,
       ),
     );
   }
@@ -309,4 +271,26 @@ class _LoginScreenState extends State<LoginScreen>
     _passwordController.dispose();
     super.dispose();
   }
+}
+
+class GridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.black.withOpacity(0.04)
+      ..strokeWidth = 1.0;
+
+    const spacing = 30.0;
+
+    for (var i = 0.0; i < size.width; i += spacing) {
+      canvas.drawLine(Offset(i, 0), Offset(i, size.height), paint);
+    }
+
+    for (var i = 0.0; i < size.height; i += spacing) {
+      canvas.drawLine(Offset(0, i), Offset(size.width, i), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
 import '../providers/product_provider.dart';
-import '../services/api_service.dart';
 import '../services/export_service.dart';
 import '../theme/app_theme.dart';
 
@@ -15,8 +14,6 @@ class ReportsScreen extends StatefulWidget {
 }
 
 class _ReportsScreenState extends State<ReportsScreen> {
-  late Future<Map<String, dynamic>> _stockValueFuture;
-
   @override
   void initState() {
     super.initState();
@@ -24,108 +21,226 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   void _refresh() {
-    setState(() {
-      _stockValueFuture = ApiService.getStockValue();
-      Provider.of<ProductProvider>(context, listen: false).fetchProducts();
-    });
+    Provider.of<ProductProvider>(context, listen: false).fetchProducts();
   }
 
   @override
   Widget build(BuildContext context) {
     final productProvider = Provider.of<ProductProvider>(context);
 
-    // Calculate Top 5 products by value
+    // Calculate Top 5 products and "Others" share
     final List<dynamic> sortedProducts = List.from(productProvider.products);
+    final double totalInventoryValue = sortedProducts.fold<double>(0, (sum, p) {
+      final q = p['quantity'] ?? 0;
+      final pr = double.tryParse(p['price'].toString()) ?? 0;
+      return sum + (q * pr);
+    });
+
     sortedProducts.sort((a, b) {
-      final valA =
-          (a['quantity'] ?? 0) * (double.tryParse(a['price'].toString()) ?? 0);
-      final valB =
-          (b['quantity'] ?? 0) * (double.tryParse(b['price'].toString()) ?? 0);
+      final valA = (a['quantity'] ?? 0) * (double.tryParse(a['price'].toString()) ?? 0);
+      final valB = (b['quantity'] ?? 0) * (double.tryParse(b['price'].toString()) ?? 0);
       return valB.compareTo(valA);
     });
 
     final top5 = sortedProducts.take(5).toList();
+    final double top5Value = top5.fold<double>(0, (sum, p) {
+      final q = p['quantity'] ?? 0;
+      final pr = double.tryParse(p['price'].toString()) ?? 0;
+      return sum + (q * pr);
+    });
+    
+    final double othersValue = totalInventoryValue - top5Value;
+
+    final List<Color> palette = [
+      AppTheme.primary,
+      AppTheme.success,
+      AppTheme.warning,
+      AppTheme.info,
+      AppTheme.danger,
+      Colors.grey.shade400, // For "Others"
+    ];
+
+    final width = MediaQuery.of(context).size.width;
+    final isMobile = width < 600;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Inventory Reports')),
+      backgroundColor: AppTheme.background,
       body: RefreshIndicator(
         onRefresh: () async => _refresh(),
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(24.0),
+          padding: EdgeInsets.all(AppTheme.getResponsivePadding(context)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              FutureBuilder<Map<String, dynamic>>(
-                future: _stockValueFuture,
-                builder: (context, snapshot) {
-                  final value =
-                      snapshot.data?['total_stock_value']?.toString() ?? '...';
-                  return Card(
-                    color: Colors.blue.shade700,
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(24.0),
+              Text(
+                'REPORTS & ANALYTICS',
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  fontSize: isMobile ? 24 : 32,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              const SizedBox(height: AppTheme.spacingLg),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(AppTheme.spacingLg),
+                decoration: BoxDecoration(
+                  color: AppTheme.info,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                  border: Border.all(color: Colors.black, width: AppTheme.borderWidth),
+                  boxShadow: AppTheme.cardShadow,
+                ),
+                child: Column(
+                  children: [
+                    const Text(
+                      'TOTAL INVENTORY VALUE',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.1,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      '${AppTheme.currencySymbol}${NumberFormat('#,###').format(totalInventoryValue)}',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: isMobile ? 28 : 36,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+              const Text(
+                'TOP 5 PRODUCTS BY VALUE',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.1),
+              ),
+              const SizedBox(height: 16),
+              if (top5.isNotEmpty) ...[
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 4,
+                      child: SizedBox(
+                        height: 220,
+                        child: PieChart(
+                          PieChartData(
+                            sectionsSpace: 2,
+                            centerSpaceRadius: 0,
+                            sections: [
+                              ...top5.asMap().entries.map((entry) {
+                                final index = entry.key;
+                                final p = entry.value;
+                                final val = (p['quantity'] ?? 0) * (double.tryParse(p['price'].toString()) ?? 0);
+                                final percentage = totalInventoryValue > 0 ? (val / totalInventoryValue * 100) : 0.0;
+                                
+                                return PieChartSectionData(
+                                  value: val,
+                                  title: percentage > 5 ? '${percentage.toStringAsFixed(1)}%' : '',
+                                  radius: 100,
+                                  titleStyle: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.black,
+                                  ),
+                                  color: palette[index],
+                                  borderSide: const BorderSide(color: Colors.black, width: 2),
+                                );
+                              }),
+                              if (othersValue > 0)
+                                PieChartSectionData(
+                                  value: othersValue,
+                                  title: (othersValue / totalInventoryValue * 100) > 5 
+                                      ? '${(othersValue / totalInventoryValue * 100).toStringAsFixed(1)}%' 
+                                      : '',
+                                  radius: 100,
+                                  titleStyle: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.black,
+                                  ),
+                                  color: palette[5],
+                                  borderSide: const BorderSide(color: Colors.black, width: 2),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 24),
+                    Expanded(
+                      flex: 5,
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Total Inventory Value',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 16,
+                          ...top5.asMap().entries.map((entry) {
+                            final index = entry.key;
+                            final p = entry.value;
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 12,
+                                    height: 12,
+                                    decoration: BoxDecoration(
+                                      color: palette[index],
+                                      border: Border.all(color: Colors.black, width: 1.5),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      p['name'].toString().toUpperCase(),
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w800,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                          if (othersValue > 0)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 12,
+                                    height: 12,
+                                    decoration: BoxDecoration(
+                                      color: palette[5],
+                                      border: Border.all(color: Colors.black, width: 1.5),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Text(
+                                    'OTHERS',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            '${AppTheme.currencySymbol}${NumberFormat('#,###').format(double.tryParse(value) ?? 0)}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
                         ],
                       ),
                     ),
-                  );
-                },
-              ),
-              const SizedBox(height: 32),
-              const Text(
-                'Top 5 Products by Value',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              if (top5.isNotEmpty)
-                SizedBox(
-                  height: 200,
-                  child: PieChart(
-                    PieChartData(
-                      sections: top5.map((p) {
-                        final val =
-                            (p['quantity'] ?? 0) *
-                            (double.tryParse(p['price'].toString()) ?? 0);
-                        return PieChartSectionData(
-                          value: val,
-                          title: p['name'].toString().substring(
-                            0,
-                            p['name'].toString().length > 5
-                                ? 5
-                                : p['name'].toString().length,
-                          ),
-                          color:
-                              Colors.primaries[top5.indexOf(p) %
-                                  Colors.primaries.length],
-                          radius: 50,
-                        );
-                      }).toList(),
-                    ),
-                  ),
+                  ],
                 ),
+              ],
               const SizedBox(height: 32),
               const Text(
-                'Export Reports',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                'EXPORT REPORTS',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.1),
               ),
               const SizedBox(height: 16),
               Row(
@@ -135,11 +250,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
                       onPressed: () => ExportService.exportProductsToCSV(
                         productProvider.products,
                       ),
-                      icon: const Icon(Icons.file_download_outlined),
-                      label: const Text('Export CSV'),
+                      icon: const Icon(Icons.file_download_outlined, color: Colors.black),
+                      label: const Text('DOWNLOAD CSV REPORT'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.success,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(vertical: 18),
                       ),
                     ),
                   ),
@@ -147,8 +263,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
               ),
               const SizedBox(height: 32),
               const Text(
-                'Low Stock Alerts',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                'LOW STOCK ALERTS',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.1),
               ),
               const SizedBox(height: 16),
               if (productProvider.lowStockProducts.isEmpty)
@@ -161,25 +277,39 @@ class _ReportsScreenState extends State<ReportsScreen> {
               else
                 Column(
                   children: productProvider.lowStockProducts.map((item) {
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 8),
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: AppTheme.spacingMd),
+                      decoration: BoxDecoration(
+                        color: AppTheme.surface,
+                        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                        border: Border.all(color: Colors.black, width: AppTheme.borderWidth),
+                        boxShadow: AppTheme.softShadow,
+                      ),
                       child: ListTile(
-                        title: Text(item['name']),
-                        subtitle: Text('SKU: ${item['sku']}'),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMd, vertical: 8),
+                        title: Text(
+                          item['name'].toString().toUpperCase(),
+                          style: const TextStyle(fontWeight: FontWeight.w900),
+                        ),
+                        subtitle: Text(
+                          'SKU: ${item['sku']}',
+                          style: const TextStyle(fontWeight: FontWeight.w700, color: AppTheme.textSecondary),
+                        ),
                         trailing: Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
-                            vertical: 4,
+                            vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.red.shade100,
-                            borderRadius: BorderRadius.circular(12),
+                            color: AppTheme.danger,
+                            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                            border: Border.all(color: Colors.black, width: 2),
                           ),
                           child: Text(
-                            'Qty: ${item['quantity']}',
+                            '${item['quantity']}',
                             style: const TextStyle(
-                              color: Colors.red,
-                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                              fontWeight: FontWeight.w900,
                             ),
                           ),
                         ),

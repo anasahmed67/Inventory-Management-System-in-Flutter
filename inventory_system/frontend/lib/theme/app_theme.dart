@@ -4,33 +4,36 @@ import 'package:google_fonts/google_fonts.dart';
 class AppTheme {
   // ── Color Tokens ──────────────────────────────────────────────
   static const String currencySymbol = 'Rs.';
-  static const Color primary = Color(0xFF6C5CE7);
-  static const Color primaryLight = Color(0xFFA29BFE);
-  static const Color primaryDark = Color(0xFF5A4BD1);
+  static const Color primary = Color(0xFF4D7CFF); // High-contrast Blue
+  static const Color primaryLight = Color(0xFFC2D2FF);
+  static const Color primaryDark = Color(0xFF2E5EDD);
 
-  static const Color background = Color(0xFFF8F9FE);
+  static const Color background = Color(0xFFFCFCFC); // Off-white
   static const Color surface = Color(0xFFFFFFFF);
-  static const Color surfaceVariant = Color(0xFFF1F0FF);
+  static const Color surfaceVariant = Color(0xFFF1F4FF);
 
-  static const Color textPrimary = Color(0xFF2D3436);
-  static const Color textSecondary = Color(0xFF636E72);
-  static const Color textHint = Color(0xFFB2BEC3);
+  static const Color textPrimary = Color(0xFF000000); // Pure Black
+  static const Color textSecondary = Color(0xFF333333);
+  static const Color textHint = Color(0xFF666666);
 
-  static const Color success = Color(0xFF00B894);
-  static const Color successLight = Color(0xFFE8F8F5);
-  static const Color warning = Color(0xFFFDCB6E);
-  static const Color warningLight = Color(0xFFFEF9E7);
-  static const Color danger = Color(0xFFE17055);
-  static const Color dangerLight = Color(0xFFFDEDEC);
+  static const Color success = Color(0xFF00FFBD); // Neo Green
+  static const Color successLight = Color(0xFFD0FFF2);
+  static const Color warning = Color(0xFFFAD21B); // Gumroad Yellow
+  static const Color warningLight = Color(0xFFFFF7D6);
+  static const Color danger = Color(0xFFFF5C5C); // Solid Red
+  static const Color dangerLight = Color(0xFFFFE5E5);
 
-  static const Color divider = Color(0xFFEEEEEE);
-  static const Color shadow = Color(0x0A000000);
+  static const Color info = Color(0xFF00D1FF); // Cyan-ish Blue
+  static const Color infoLight = Color(0xFFE0FAFF);
+
+  static const Color divider = Color(0xFF000000); // Black for borders
+  static const Color shadow = Color(0xFF000000);
 
   // ── Radii ─────────────────────────────────────────────────────
-  static const double radiusSm = 8;
-  static const double radiusMd = 12;
-  static const double radiusLg = 16;
-  static const double radiusXl = 20;
+  static const double radiusSm = 2;
+  static const double radiusMd = 4; // Slightly rounded
+  static const double radiusLg = 4;
+  static const double radiusXl = 4;
   static const double radiusFull = 100;
 
   // ── Spacing ───────────────────────────────────────────────────
@@ -40,41 +43,35 @@ class AppTheme {
   static const double spacingLg = 24;
   static const double spacingXl = 32;
   static const double spacingXxl = 48;
+  
+  static double getResponsivePadding(BuildContext context) {
+    return MediaQuery.of(context).size.width < 600 ? spacingMd : spacingLg;
+  }
 
   // ── Sidebar ───────────────────────────────────────────────────
   static const double sidebarWidth = 260;
-  static const Color sidebarBg = Color(0xFF2D3436);
+  static const Color sidebarBg = Color(0xFF000000); // Black Sidebar
   static const Color sidebarActiveItem = primary;
-  static const Color sidebarText = Color(0xFFB2BEC3);
-  static const Color sidebarActiveText = Colors.white;
+  static const Color sidebarText = Color(0xFFFFFFFF);
+  static const Color sidebarActiveText = Color(0xFF000000);
 
-  // ── Gradients ─────────────────────────────────────────────────
-  static const LinearGradient primaryGradient = LinearGradient(
-    colors: [primary, primaryLight],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
+  // ── Borders ──────────────────────────────────────────────────
+  static const double borderWidth = 2.5;
 
-  static const LinearGradient darkGradient = LinearGradient(
-    colors: [Color(0xFF2D3436), Color(0xFF636E72)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
-
-  // ── Box Shadows ───────────────────────────────────────────────
+  // ── Box Shadows (Hard Shadows) ────────────────────────────────
   static List<BoxShadow> get cardShadow => [
-    BoxShadow(
-      color: primary.withAlpha(15),
-      blurRadius: 20,
-      offset: const Offset(0, 4),
+    const BoxShadow(
+      color: Colors.black,
+      offset: Offset(4, 4),
+      blurRadius: 0,
     ),
   ];
 
   static List<BoxShadow> get softShadow => [
-    BoxShadow(
-      color: Colors.black.withAlpha(10),
-      blurRadius: 10,
-      offset: const Offset(0, 2),
+    const BoxShadow(
+      color: Colors.black,
+      offset: Offset(3, 3),
+      blurRadius: 0,
     ),
   ];
 
@@ -89,7 +86,7 @@ class AppTheme {
       colorScheme: ColorScheme.fromSeed(
         seedColor: primary,
         primary: primary,
-        onPrimary: Colors.white,
+        onPrimary: Colors.black,
         surface: surface,
         onSurface: textPrimary,
         error: danger,
@@ -100,34 +97,35 @@ class AppTheme {
       textTheme: baseTextTheme.copyWith(
         displayLarge: baseTextTheme.displayLarge?.copyWith(
           color: textPrimary,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w900, // Heavier
         ),
         headlineLarge: baseTextTheme.headlineLarge?.copyWith(
           color: textPrimary,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w900,
         ),
         headlineMedium: baseTextTheme.headlineMedium?.copyWith(
           color: textPrimary,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.5,
         ),
         headlineSmall: baseTextTheme.headlineSmall?.copyWith(
           color: textPrimary,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w800,
         ),
         titleLarge: baseTextTheme.titleLarge?.copyWith(
           color: textPrimary,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w800,
         ),
         titleMedium: baseTextTheme.titleMedium?.copyWith(
           color: textPrimary,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w700,
         ),
-        bodyLarge: baseTextTheme.bodyLarge?.copyWith(color: textPrimary),
-        bodyMedium: baseTextTheme.bodyMedium?.copyWith(color: textSecondary),
+        bodyLarge: baseTextTheme.bodyLarge?.copyWith(color: textPrimary, fontWeight: FontWeight.w600),
+        bodyMedium: baseTextTheme.bodyMedium?.copyWith(color: textSecondary, fontWeight: FontWeight.w500),
         bodySmall: baseTextTheme.bodySmall?.copyWith(color: textHint),
         labelLarge: baseTextTheme.labelLarge?.copyWith(
-          color: Colors.white,
-          fontWeight: FontWeight.w600,
+          color: Colors.black,
+          fontWeight: FontWeight.w700,
         ),
       ),
 
@@ -137,10 +135,12 @@ class AppTheme {
         foregroundColor: textPrimary,
         elevation: 0,
         centerTitle: false,
-        scrolledUnderElevation: 1,
+        shape: const Border(
+          bottom: BorderSide(color: Colors.black, width: borderWidth),
+        ),
         titleTextStyle: GoogleFonts.inter(
           fontSize: 20,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w800,
           color: textPrimary,
         ),
         iconTheme: const IconThemeData(color: textPrimary),
@@ -151,7 +151,8 @@ class AppTheme {
         color: surface,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(radiusLg),
+          borderRadius: BorderRadius.circular(radiusMd),
+          side: const BorderSide(color: Colors.black, width: borderWidth),
         ),
         margin: EdgeInsets.zero,
       ),
@@ -159,108 +160,121 @@ class AppTheme {
       // Input
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: background,
+        fillColor: surface,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 14,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusMd),
-          borderSide: BorderSide.none,
+          borderSide: const BorderSide(color: Colors.black, width: borderWidth),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusMd),
-          borderSide: const BorderSide(color: divider, width: 1),
+          borderSide: const BorderSide(color: Colors.black, width: borderWidth),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusMd),
-          borderSide: const BorderSide(color: primary, width: 1.5),
+          borderSide: const BorderSide(color: primary, width: borderWidth + 1),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusMd),
-          borderSide: const BorderSide(color: danger, width: 1),
+          borderSide: const BorderSide(color: danger, width: borderWidth),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusMd),
-          borderSide: const BorderSide(color: danger, width: 1.5),
+          borderSide: const BorderSide(color: danger, width: borderWidth + 1),
         ),
-        labelStyle: GoogleFonts.inter(color: textSecondary, fontSize: 14),
+        labelStyle: GoogleFonts.inter(color: textSecondary, fontSize: 14, fontWeight: FontWeight.w600),
         hintStyle: GoogleFonts.inter(color: textHint, fontSize: 14),
-        prefixIconColor: textHint,
+        prefixIconColor: textPrimary,
       ),
 
       // Elevated Button
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primary,
-          foregroundColor: Colors.white,
+          foregroundColor: Colors.black,
           elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(radiusMd),
+            side: const BorderSide(color: Colors.black, width: borderWidth),
           ),
           textStyle: GoogleFonts.inter(
             fontSize: 15,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w800,
           ),
+        ).copyWith(
+          // Simulate press effect by shifting shadow? Hard to do in pure styleFrom
         ),
       ),
 
       // Text Button
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: primary,
+          foregroundColor: textPrimary,
           textStyle: GoogleFonts.inter(
             fontSize: 14,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w700,
+            decoration: TextDecoration.underline,
           ),
         ),
       ),
 
       // FAB
-      floatingActionButtonTheme: const FloatingActionButtonThemeData(
-        backgroundColor: primary,
-        foregroundColor: Colors.white,
-        elevation: 4,
-        shape: CircleBorder(),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: warning,
+        foregroundColor: Colors.black,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(radiusMd),
+          side: const BorderSide(color: Colors.black, width: borderWidth),
+        ),
       ),
 
       // Divider
       dividerTheme: const DividerThemeData(
-        color: divider,
-        thickness: 1,
+        color: Colors.black,
+        thickness: borderWidth,
         space: 0,
       ),
 
       // Dialog
       dialogTheme: DialogThemeData(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(radiusLg),
+          borderRadius: BorderRadius.circular(radiusMd),
+          side: const BorderSide(color: Colors.black, width: borderWidth),
         ),
         backgroundColor: surface,
-        elevation: 8,
+        elevation: 0,
       ),
 
       // SnackBar
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.black,
+        contentTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(radiusMd),
+          side: const BorderSide(color: primary, width: borderWidth),
         ),
       ),
 
       // Chip
       chipTheme: ChipThemeData(
-        backgroundColor: surfaceVariant,
+        backgroundColor: primaryLight,
         labelStyle: GoogleFonts.inter(
           fontSize: 12,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w700,
+          color: Colors.black,
         ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(radiusFull),
+          borderRadius: BorderRadius.circular(radiusMd),
+          side: const BorderSide(color: Colors.black, width: 1.5),
         ),
-        side: BorderSide.none,
       ),
     );
   }
+
 }

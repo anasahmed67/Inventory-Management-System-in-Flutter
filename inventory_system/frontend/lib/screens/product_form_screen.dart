@@ -51,14 +51,11 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       'quantity': int.parse(_quantityController.text),
       'price': double.parse(_priceController.text),
       'barcode': _barcodeController.text.trim(),
-      'low_stock_threshold': 5, // Default
+      'low_stock_threshold': 5,
     };
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final productProvider = Provider.of<ProductProvider>(
-      context,
-      listen: false,
-    );
+    final productProvider = Provider.of<ProductProvider>(context, listen: false);
 
     try {
       if (isEdit) {
@@ -75,11 +72,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              isEdit
-                  ? 'Product updated successfully!'
-                  : 'Product added successfully!',
-            ),
+            content: Text(isEdit ? 'Product updated successfully!' : 'Product added successfully!'),
             backgroundColor: AppTheme.success,
           ),
         );
@@ -91,12 +84,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           SnackBar(
             content: Text('Failed: $errorMessage'),
             backgroundColor: AppTheme.danger,
-            duration: const Duration(seconds: 4),
-            action: SnackBarAction(
-              label: 'Dismiss',
-              textColor: Colors.white,
-              onPressed: () {},
-            ),
           ),
         );
       }
@@ -116,212 +103,172 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isNarrow = MediaQuery.of(context).size.width < 450;
+
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: Text(isEdit ? 'Edit Product' : 'Add New Product'),
+        title: Text(isEdit ? 'EDIT PRODUCT' : 'ADD NEW PRODUCT', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppTheme.spacingLg),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(AppTheme.getResponsivePadding(context)),
+        child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 560),
             child: Container(
               padding: const EdgeInsets.all(AppTheme.spacingLg),
               decoration: BoxDecoration(
                 color: AppTheme.surface,
-                borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-                boxShadow: AppTheme.softShadow,
+                borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                border: Border.all(color: Colors.black, width: AppTheme.borderWidth),
+                boxShadow: AppTheme.cardShadow,
               ),
               child: Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ── Header ──
+                    // Header
                     Row(
                       children: [
                         Container(
-                          width: 44,
-                          height: 44,
+                          width: 48,
+                          height: 48,
                           decoration: BoxDecoration(
-                            color: AppTheme.surfaceVariant,
-                            borderRadius: BorderRadius.circular(
-                              AppTheme.radiusMd,
-                            ),
-                          ),
-                          child: Icon(
-                            isEdit
-                                ? Icons.edit_rounded
-                                : Icons.add_business_rounded,
                             color: AppTheme.primary,
-                            size: 22,
+                            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                            border: Border.all(color: Colors.black, width: 2),
                           ),
+                          child: Icon(isEdit ? Icons.edit_rounded : Icons.add_business_rounded, color: Colors.black, size: 24),
                         ),
                         const SizedBox(width: AppTheme.spacingMd),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                isEdit ? 'Edit Product Details' : 'New Product',
-                                style: Theme.of(context).textTheme.titleLarge
-                                    ?.copyWith(fontWeight: FontWeight.w600),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                isEdit
-                                    ? 'Update the information below'
-                                    : 'Fill in the product information',
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
+                              Text(isEdit ? 'PRODUCT DETAILS' : 'NEW PRODUCT', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 20)),
+                              Text(isEdit ? 'Update info below' : 'Fill details below', style: const TextStyle(fontWeight: FontWeight.w700, color: AppTheme.textSecondary, fontSize: 12)),
                             ],
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: AppTheme.spacingLg),
-                    const Divider(),
+                    const Divider(color: Colors.black, thickness: 1.5),
                     const SizedBox(height: AppTheme.spacingLg),
 
-                    // ── SKU ──
-                    _buildLabel('SKU'),
+                    // SKU
+                    _buildLabel('SKU CODE'),
                     const SizedBox(height: AppTheme.spacingSm),
                     TextFormField(
                       controller: _skuController,
                       decoration: InputDecoration(
                         hintText: 'e.g. SKU-001',
-                        prefixIcon: const Icon(Icons.tag_rounded, size: 20),
-                        suffixIcon: isEdit
-                            ? null
-                            : IconButton(
-                                icon: const Icon(
-                                  Icons.auto_awesome_rounded,
-                                  size: 20,
-                                  color: AppTheme.primary,
-                                ),
-                                tooltip: 'Generate SKU',
-                                onPressed: _generateSku,
-                              ),
+                        prefixIcon: const Icon(Icons.tag_rounded, size: 20, color: Colors.black),
+                        suffixIcon: isEdit ? null : IconButton(
+                          icon: const Icon(Icons.auto_awesome_rounded, size: 20, color: AppTheme.primary),
+                          onPressed: _generateSku,
+                        ),
                       ),
                       validator: (v) => v!.isEmpty ? 'Enter SKU' : null,
                     ),
                     const SizedBox(height: AppTheme.spacingMd),
 
-                    // ── Product Name ──
-                    _buildLabel('Product Name'),
+                    // Product Name
+                    _buildLabel('PRODUCT NAME'),
                     const SizedBox(height: AppTheme.spacingSm),
                     TextFormField(
                       controller: _nameController,
                       decoration: const InputDecoration(
                         hintText: 'e.g. Wireless Mouse',
-                        prefixIcon: Icon(Icons.inventory_2_outlined, size: 20),
+                        prefixIcon: Icon(Icons.inventory_2_outlined, size: 20, color: Colors.black),
                       ),
                       validator: (v) => v!.isEmpty ? 'Enter Name' : null,
                     ),
                     const SizedBox(height: AppTheme.spacingMd),
 
-                    // ── Quantity & Price Row ──
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildLabel('Quantity'),
-                              const SizedBox(height: AppTheme.spacingSm),
-                              TextFormField(
-                                controller: _quantityController,
-                                decoration: const InputDecoration(
-                                  hintText: '0',
-                                  prefixIcon: Icon(
-                                    Icons.numbers_rounded,
-                                    size: 20,
-                                  ),
+                    // Quantity & Price
+                    if (isNarrow) ...[
+                      _buildLabel('QUANTITY'),
+                      const SizedBox(height: AppTheme.spacingSm),
+                      TextFormField(
+                        controller: _quantityController,
+                        decoration: const InputDecoration(prefixIcon: Icon(Icons.numbers_rounded, size: 20, color: Colors.black)),
+                        keyboardType: TextInputType.number,
+                        validator: (v) => v!.isEmpty ? 'Enter Qty' : null,
+                      ),
+                      const SizedBox(height: AppTheme.spacingMd),
+                      _buildLabel('UNIT PRICE'),
+                      const SizedBox(height: AppTheme.spacingSm),
+                      TextFormField(
+                        controller: _priceController,
+                        decoration: const InputDecoration(prefixIcon: Icon(Icons.payments_outlined, size: 20, color: Colors.black)),
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        validator: (v) => v!.isEmpty ? 'Enter Price' : null,
+                      ),
+                    ] else
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildLabel('QUANTITY'),
+                                const SizedBox(height: AppTheme.spacingSm),
+                                TextFormField(
+                                  controller: _quantityController,
+                                  decoration: const InputDecoration(prefixIcon: Icon(Icons.numbers_rounded, size: 20, color: Colors.black)),
+                                  keyboardType: TextInputType.number,
+                                  validator: (v) => v!.isEmpty ? 'Enter Qty' : null,
                                 ),
-                                keyboardType: TextInputType.number,
-                                validator: (v) {
-                                  if (v!.isEmpty) return 'Enter Qty';
-                                  final n = int.tryParse(v);
-                                  if (n == null || n < 0) return 'Invalid';
-                                  return null;
-                                },
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: AppTheme.spacingMd),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildLabel('Price (${AppTheme.currencySymbol})'),
-                              const SizedBox(height: AppTheme.spacingSm),
-                              TextFormField(
-                                controller: _priceController,
-                                decoration: const InputDecoration(
-                                  hintText: '0.00',
-                                  prefixIcon: Icon(
-                                    Icons.payments_rounded,
-                                    size: 20,
-                                  ),
+                          const SizedBox(width: AppTheme.spacingMd),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildLabel('UNIT PRICE'),
+                                const SizedBox(height: AppTheme.spacingSm),
+                                TextFormField(
+                                  controller: _priceController,
+                                  decoration: const InputDecoration(prefixIcon: Icon(Icons.payments_outlined, size: 20, color: Colors.black)),
+                                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                  validator: (v) => v!.isEmpty ? 'Enter Price' : null,
                                 ),
-                                keyboardType:
-                                    const TextInputType.numberWithOptions(
-                                      decimal: true,
-                                    ),
-                                validator: (v) {
-                                  if (v!.isEmpty) return 'Enter Price';
-                                  final n = double.tryParse(v);
-                                  if (n == null || n <= 0) return 'Price > 0';
-                                  return null;
-                                },
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
                     const SizedBox(height: AppTheme.spacingMd),
 
-                    // ── Barcode ──
-                    _buildLabel('Barcode'),
+                    // Barcode
+                    _buildLabel('BARCODE (OPTIONAL)'),
                     const SizedBox(height: AppTheme.spacingSm),
                     TextFormField(
                       controller: _barcodeController,
                       decoration: const InputDecoration(
                         hintText: 'e.g. 1234567890',
-                        prefixIcon: Icon(Icons.qr_code_rounded, size: 20),
+                        prefixIcon: Icon(Icons.qr_code_rounded, size: 20, color: Colors.black),
                       ),
                     ),
                     const SizedBox(height: AppTheme.spacingXl),
 
-                    // ── Submit Button ──
+                    // Submit Button
                     SizedBox(
                       width: double.infinity,
-                      height: 50,
+                      height: 54,
                       child: ElevatedButton(
                         onPressed: _isLoading ? null : _saveForm,
                         child: _isLoading
-                            ? const SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.5,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : Text(
-                                isEdit ? 'Update Product' : 'Save Product',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
+                            ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 3, color: Colors.black))
+                            : Text(isEdit ? 'UPDATE PRODUCT' : 'SAVE PRODUCT', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
                       ),
                     ),
                   ],
@@ -335,14 +282,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   }
 
   Widget _buildLabel(String text) {
-    return Text(
-      text,
-      style: const TextStyle(
-        fontWeight: FontWeight.w500,
-        fontSize: 13,
-        color: AppTheme.textPrimary,
-      ),
-    );
+    return Text(text, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: Colors.black, letterSpacing: 0.5));
   }
 
   @override

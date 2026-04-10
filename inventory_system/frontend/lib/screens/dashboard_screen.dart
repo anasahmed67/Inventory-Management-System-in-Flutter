@@ -90,7 +90,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         content = const ReportsScreen();
         break;
       default:
-        content = _buildDashboardContent(context, authProvider);
+        content = _buildDashboardContent(context, authProvider, isWide);
     }
 
     if (isWide) {
@@ -107,7 +107,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       // ── Mobile: drawer + bottom nav ──
       return Scaffold(
         appBar: AppBar(
-          title: Text(currentLabel),
+          title: Text(currentLabel, style: const TextStyle(fontWeight: FontWeight.w900)),
           actions: [_buildLogoutButton(authProvider)],
         ),
         body: content,
@@ -123,7 +123,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final role = authProvider.role?.toUpperCase() ?? 'STAFF';
     return Container(
       width: AppTheme.sidebarWidth,
-      decoration: const BoxDecoration(color: AppTheme.sidebarBg),
+      decoration: const BoxDecoration(
+        color: AppTheme.sidebarBg,
+        border: Border(right: BorderSide(color: Colors.black, width: AppTheme.borderWidth)),
+      ),
       child: Column(
         children: [
           const SizedBox(height: AppTheme.spacingLg),
@@ -133,16 +136,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Row(
               children: [
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: 44,
+                  height: 44,
                   decoration: BoxDecoration(
                     color: AppTheme.primary,
                     borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                    border: Border.all(color: Colors.white, width: 2),
                   ),
                   child: const Icon(
                     Icons.inventory_2_rounded,
-                    color: Colors.white,
-                    size: 22,
+                    color: Colors.black,
+                    size: 24,
                   ),
                 ),
                 const SizedBox(width: AppTheme.spacingMd),
@@ -151,8 +155,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     'InvenTrack',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
                       letterSpacing: -0.5,
                     ),
                   ),
@@ -193,15 +197,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           borderRadius: BorderRadius.circular(
                             AppTheme.radiusMd,
                           ),
+                          border: isActive 
+                            ? Border.all(color: Colors.white, width: 2)
+                            : null,
                         ),
                         child: Row(
                           children: [
                             Icon(
                               isActive ? item.activeIcon : item.icon,
                               color: isActive
-                                  ? Colors.white
+                                  ? Colors.black
                                   : AppTheme.sidebarText,
-                              size: 20,
+                              size: 22,
                             ),
                             const SizedBox(width: AppTheme.spacingMd),
                             Expanded(
@@ -209,12 +216,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 item.label,
                                 style: TextStyle(
                                   color: isActive
-                                      ? Colors.white
+                                      ? Colors.black
                                       : AppTheme.sidebarText,
                                   fontWeight: isActive
-                                      ? FontWeight.w600
-                                      : FontWeight.w400,
-                                  fontSize: 14,
+                                      ? FontWeight.w900
+                                      : FontWeight.w500,
+                                  fontSize: 15,
                                 ),
                               ),
                             ),
@@ -233,8 +240,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             margin: const EdgeInsets.all(AppTheme.spacingMd),
             padding: const EdgeInsets.all(AppTheme.spacingMd),
             decoration: BoxDecoration(
-              color: Colors.white.withAlpha(15),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+              border: Border.all(color: Colors.white, width: 2),
             ),
             child: Row(
               children: [
@@ -244,8 +252,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: Text(
                     role[0],
                     style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
+                      color: Colors.black,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
                 ),
@@ -257,16 +265,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Text(
                         role,
                         style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
+                          color: Colors.black,
+                          fontWeight: FontWeight.w900,
                           fontSize: 13,
                         ),
                       ),
                       const Text(
-                        'Logged In',
+                        'LOGGED IN',
                         style: TextStyle(
-                          color: AppTheme.sidebarText,
-                          fontSize: 11,
+                          color: AppTheme.textHint,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.5,
                         ),
                       ),
                     ],
@@ -275,12 +285,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 InkWell(
                   borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                   onTap: () => _confirmLogout(authProvider),
-                  child: const Padding(
-                    padding: EdgeInsets.all(AppTheme.spacingXs),
-                    child: Icon(
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: AppTheme.danger,
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                      border: Border.all(color: Colors.black, width: 1.5),
+                    ),
+                    child: const Icon(
                       Icons.logout_rounded,
-                      color: AppTheme.sidebarText,
-                      size: 20,
+                      color: Colors.black,
+                      size: 16,
                     ),
                   ),
                 ),
@@ -319,6 +334,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildDashboardContent(
     BuildContext context,
     AuthProvider authProvider,
+    bool isWide,
   ) {
     final productProvider = Provider.of<ProductProvider>(context);
     final role = authProvider.role?.toUpperCase() ?? 'STAFF';
@@ -345,38 +361,41 @@ class _DashboardScreenState extends State<DashboardScreen> {
       },
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(AppTheme.spacingLg),
+        padding: EdgeInsets.all(AppTheme.getResponsivePadding(context)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Welcome Header ──
-            Row(
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Welcome back!',
-                        style: Theme.of(context).textTheme.headlineMedium
-                            ?.copyWith(fontWeight: FontWeight.w700),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Here\'s your inventory overview for today',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                    ],
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Welcome back!',
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(fontWeight: FontWeight.w900, fontSize: isWide ? 28 : 22),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Here\'s your inventory overview',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+                    ),
+                  ],
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 14,
-                    vertical: 6,
+                    vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: AppTheme.surfaceVariant,
-                    borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                    color: AppTheme.primary,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                    border: Border.all(color: Colors.black, width: 2),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -384,14 +403,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       const Icon(
                         Icons.person_outline_rounded,
                         size: 16,
-                        color: AppTheme.primary,
+                        color: Colors.black,
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 8),
                       Text(
                         role,
                         style: const TextStyle(
-                          color: AppTheme.primary,
-                          fontWeight: FontWeight.w600,
+                          color: Colors.black,
+                          fontWeight: FontWeight.w900,
                           fontSize: 12,
                         ),
                       ),
@@ -581,19 +600,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
       padding: const EdgeInsets.all(AppTheme.spacingLg),
       decoration: BoxDecoration(
         color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-        boxShadow: AppTheme.softShadow,
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        border: Border.all(color: Colors.black, width: AppTheme.borderWidth),
+        boxShadow: AppTheme.cardShadow,
       ),
       child: Row(
         children: [
           Container(
-            width: 48,
-            height: 48,
+            width: 54,
+            height: 54,
             decoration: BoxDecoration(
               color: iconBg,
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+              border: Border.all(color: Colors.black, width: 2),
             ),
-            child: Icon(icon, color: iconColor, size: 24),
+            child: Icon(icon, color: Colors.black, size: 28),
           ),
           const SizedBox(width: AppTheme.spacingMd),
           Expanded(
@@ -603,17 +624,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Text(
                   label,
                   style: const TextStyle(
-                    color: AppTheme.textSecondary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
+                    color: AppTheme.textPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   value,
                   style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 26,
+                    fontWeight: FontWeight.w900,
                     color: AppTheme.textPrimary,
                   ),
                 ),
@@ -622,8 +643,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Text(
                     subtitle,
                     style: const TextStyle(
-                      fontSize: 11,
-                      color: AppTheme.textHint,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textSecondary,
                     ),
                   ),
                 ],
@@ -647,19 +669,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        border: Border.all(color: color.withAlpha(60)),
+        border: Border.all(color: Colors.black, width: AppTheme.borderWidth),
+        boxShadow: AppTheme.softShadow,
       ),
       child: Row(
         children: [
-          Icon(icon, color: color, size: 20),
+          Icon(icon, color: Colors.black, size: 24),
           const SizedBox(width: AppTheme.spacingMd),
           Expanded(
             child: Text(
               text,
-              style: TextStyle(
-                color: color,
-                fontWeight: FontWeight.w500,
-                fontSize: 13,
+              style: const TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.w800,
+                fontSize: 14,
               ),
             ),
           ),
@@ -702,8 +725,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final crossAxisCount = constraints.maxWidth > 600 ? 4 : 2;
-        final aspectRatio = constraints.maxWidth > 600 ? 2.5 : 2.8;
+        final crossAxisCount = constraints.maxWidth > 800
+            ? 4
+            : constraints.maxWidth > 450
+                ? 2
+                : 1;
+        final aspectRatio = constraints.maxWidth > 800
+            ? 2.5
+            : constraints.maxWidth > 450
+                ? 2.0
+                : 3.5;
 
         return GridView.count(
           crossAxisCount: crossAxisCount,
@@ -722,14 +753,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
         onTap: action.onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMd),
           decoration: BoxDecoration(
-            color: AppTheme.surface,
-            borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-            border: Border.all(color: AppTheme.divider),
+            color: action.color,
+            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            border: Border.all(color: Colors.black, width: AppTheme.borderWidth),
             boxShadow: AppTheme.softShadow,
           ),
           child: Row(
@@ -738,19 +769,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: action.color.withAlpha(20),
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                  border: Border.all(color: Colors.black, width: 2),
                 ),
-                child: Icon(action.icon, color: action.color, size: 20),
+                child: Icon(action.icon, color: Colors.black, size: 22),
               ),
               const SizedBox(width: AppTheme.spacingMd),
               Expanded(
                 child: Text(
                   action.label,
                   style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                    color: AppTheme.textPrimary,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 14,
+                    color: Colors.black,
                   ),
                 ),
               ),
@@ -771,8 +803,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       padding: const EdgeInsets.all(AppTheme.spacingLg),
       decoration: BoxDecoration(
         color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-        boxShadow: AppTheme.softShadow,
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        border: Border.all(color: Colors.black, width: AppTheme.borderWidth),
+        boxShadow: AppTheme.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -783,8 +816,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Text(
                 title,
                 style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
                   color: AppTheme.textPrimary,
                 ),
               ),
@@ -849,19 +882,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
         await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Logout'),
-            content: const Text('Are you sure you want to log out?'),
+            title: const Text(
+              'LOGOUT',
+              style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.1),
+            ),
+            content: const Text(
+              'Are you sure you want to log out?',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
+                child: const Text('CANCEL'),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context, true),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.danger,
+                  foregroundColor: Colors.black,
                 ),
-                child: const Text('Logout'),
+                child: const Text('LOGOUT'),
               ),
             ],
           ),

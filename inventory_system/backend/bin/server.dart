@@ -15,7 +15,8 @@ void main() async {
   final dbHost = env['DB_HOST'] ?? 'localhost';
   final dbPort = int.tryParse(env['DB_PORT'] ?? '3306') ?? 3306;
   final dbUser = env['DB_USER'] ?? 'root';
-  final dbPass = (env['DB_PASSWORD']?.isEmpty ?? true) ? null : env['DB_PASSWORD'];
+  final dbPass =
+      (env['DB_PASSWORD']?.isEmpty ?? true) ? null : env['DB_PASSWORD'];
   final dbName = env['DB_NAME'] ?? 'inventory_db';
   final serverPort = int.tryParse(env['PORT'] ?? '8080') ?? 8080;
 
@@ -83,7 +84,8 @@ void main() async {
 
       print('--- Login Attempt ---');
       print('Email: $email');
-      print('Password provided: ${password != null && password.toString().isNotEmpty}');
+      print(
+          'Password provided: ${password != null && password.toString().isNotEmpty}');
 
       if (email == null || password == null) {
         return jsonResponse({'error': 'Email and password are required'},
@@ -103,7 +105,8 @@ void main() async {
       }
 
       final user = results.first;
-      final storedPassword = _convertToSerializable(user['password']).toString();
+      final storedPassword =
+          _convertToSerializable(user['password']).toString();
 
       print('User found in DB. Stored Password: $storedPassword');
 
@@ -260,10 +263,22 @@ void main() async {
 
     try {
       final conn = await getConnection();
-      await conn.query('DELETE FROM products WHERE id = ?', [id]);
+
+      await conn.transaction((ctx) async {
+        // 1. Delete associated transactions first
+        await ctx.query('DELETE FROM transactions WHERE product_id = ?', [id]);
+
+        // 2. Delete the product
+        final res = await ctx.query('DELETE FROM products WHERE id = ?', [id]);
+
+        if (res.affectedRows == 0) {
+          throw Exception('Product not found or already deleted');
+        }
+      });
+
       await conn.close();
 
-      return jsonResponse({'status': 'Product deleted'});
+      return jsonResponse({'status': 'Product and associated history deleted'});
     } catch (e) {
       return jsonResponse({'error': e.toString()}, statusCode: 500);
     }
@@ -462,4 +477,3 @@ void main() async {
   final server = await serve(handler, InternetAddress.anyIPv4, serverPort);
   print('Server listening on port ${server.port}');
 }
-

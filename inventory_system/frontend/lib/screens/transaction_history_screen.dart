@@ -62,12 +62,12 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                       Text(
                         'Transaction History',
                         style: Theme.of(context).textTheme.headlineMedium
-                            ?.copyWith(fontWeight: FontWeight.w700),
+                            ?.copyWith(fontWeight: FontWeight.w900),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         '${_transactions.length} records found',
-                        style: Theme.of(context).textTheme.bodyMedium,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
                       ),
                     ],
                   ),
@@ -84,7 +84,11 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                 const SizedBox(width: AppTheme.spacingMd),
                 ElevatedButton.icon(
                   onPressed: _fetchTransactions,
-                  icon: const Icon(Icons.refresh_rounded, size: 20),
+                  icon: const Icon(Icons.refresh_rounded, size: 20, color: Colors.black),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
+                    foregroundColor: Colors.black,
+                  ),
                   label: const Text('Refresh'),
                 ),
               ],
@@ -172,7 +176,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     final type = tx['type'].toString().toUpperCase();
     final isOut = type == 'OUT';
     final iconColor = isOut ? AppTheme.danger : AppTheme.success;
-    final iconBg = isOut ? AppTheme.dangerLight : AppTheme.successLight;
     final iconData = isOut ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded;
 
     final dateStr = tx['transaction_date'] ?? '';
@@ -193,7 +196,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       margin: const EdgeInsets.only(bottom: AppTheme.spacingMd),
       decoration: BoxDecoration(
         color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        border: Border.all(color: Colors.black, width: AppTheme.borderWidth),
         boxShadow: AppTheme.softShadow,
       ),
       padding: const EdgeInsets.all(AppTheme.spacingMd),
@@ -201,13 +205,14 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 48,
-            height: 48,
+            width: 52,
+            height: 52,
             decoration: BoxDecoration(
-              color: iconBg,
+              color: iconColor,
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+              border: Border.all(color: Colors.black, width: 2),
             ),
-            child: Icon(iconData, color: iconColor, size: 24),
+            child: Icon(iconData, color: Colors.black, size: 26),
           ),
           const SizedBox(width: AppTheme.spacingMd),
           Expanded(
@@ -221,8 +226,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                       child: Text(
                         productName,
                         style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 16,
                           color: AppTheme.textPrimary,
                         ),
                         maxLines: 1,
@@ -231,10 +236,10 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                     ),
                     Text(
                       '${isOut ? '-' : '+'}$quantity qty',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 15,
-                        color: iconColor,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 16,
+                        color: Colors.black,
                       ),
                     ),
                   ],
@@ -248,7 +253,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                       style: const TextStyle(
                         color: AppTheme.textSecondary,
                         fontSize: 12,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     Text(
@@ -256,6 +261,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                       style: const TextStyle(
                         color: AppTheme.textSecondary,
                         fontSize: 12,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
@@ -263,17 +269,18 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                 if (reason.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
-                      color: AppTheme.background,
-                      borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                      color: AppTheme.infoLight,
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                      border: Border.all(color: Colors.black, width: 1.5),
                     ),
                     child: Text(
-                      'Reason: $reason',
+                      'REASON: $reason',
                       style: const TextStyle(
                         fontSize: 11,
-                        color: AppTheme.textSecondary,
-                        fontStyle: FontStyle.italic,
+                        color: Colors.black,
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
                   ),
@@ -299,13 +306,15 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           borderRadius: BorderRadius.circular(AppTheme.radiusMd),
           onTap: onTap,
           child: Container(
-            width: 40,
-            height: 40,
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
-              color: AppTheme.surfaceVariant,
+              color: AppTheme.info,
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+              border: Border.all(color: Colors.black, width: 2),
+              boxShadow: AppTheme.softShadow,
             ),
-            child: Icon(icon, color: AppTheme.primary, size: 20),
+            child: Icon(icon, color: Colors.black, size: 24),
           ),
         ),
       ),

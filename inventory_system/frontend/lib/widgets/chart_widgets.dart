@@ -30,10 +30,11 @@ class StockStatusChart extends StatelessWidget {
                 ? '${((healthy / total) * 100).toStringAsFixed(0)}%'
                 : '',
             radius: 50,
+            borderSide: const BorderSide(color: Colors.black, width: 2),
             titleStyle: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w900,
+              color: Colors.black,
             ),
           ),
           PieChartSectionData(
@@ -43,10 +44,11 @@ class StockStatusChart extends StatelessWidget {
                 ? '${((lowStock / total) * 100).toStringAsFixed(0)}%'
                 : '',
             radius: 50,
+            borderSide: const BorderSide(color: Colors.black, width: 2),
             titleStyle: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w900,
+              color: Colors.black,
             ),
           ),
           PieChartSectionData(
@@ -56,10 +58,11 @@ class StockStatusChart extends StatelessWidget {
                 ? '${((outOfStock / total) * 100).toStringAsFixed(0)}%'
                 : '',
             radius: 50,
+            borderSide: const BorderSide(color: Colors.black, width: 2),
             titleStyle: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w900,
+              color: Colors.black,
             ),
           ),
         ],
@@ -91,19 +94,20 @@ class TopProductsChart extends StatelessWidget {
         barTouchData: BarTouchData(
           enabled: true,
           touchTooltipData: BarTouchTooltipData(
+            getTooltipColor: (_) => Colors.black,
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
               return BarTooltipItem(
                 '${products[groupIndex]['name']}\n',
                 const TextStyle(
                   color: Colors.white,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w900,
                 ),
                 children: [
                   TextSpan(
                     text: '${rod.toY.toInt()} units',
                     style: TextStyle(
-                      color: AppTheme.primaryLight,
-                      fontWeight: FontWeight.w500,
+                      color: AppTheme.primary,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
                 ],
@@ -125,8 +129,9 @@ class TopProductsChart extends StatelessWidget {
                     child: Text(
                       name.length > 8 ? '${name.substring(0, 8)}..' : name,
                       style: const TextStyle(
-                        fontSize: 10,
-                        color: AppTheme.textSecondary,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.black,
                       ),
                     ),
                   );
@@ -150,9 +155,10 @@ class TopProductsChart extends StatelessWidget {
                     double.tryParse(products[index]['quantity'].toString()) ??
                     0,
                 color: AppTheme.primary,
-                width: 16,
+                width: 22,
+                borderSide: const BorderSide(color: Colors.black, width: 2),
                 borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(4),
+                  top: Radius.circular(AppTheme.radiusMd),
                 ),
               ),
             ],

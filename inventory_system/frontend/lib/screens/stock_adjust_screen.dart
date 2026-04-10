@@ -145,13 +145,13 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
                 Text(
                   'Stock Adjustment',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Scan or enter a barcode to adjust stock levels',
-                  style: Theme.of(context).textTheme.bodyMedium,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: AppTheme.spacingLg),
 
@@ -189,12 +189,11 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
                         width: double.infinity,
                         child: ElevatedButton.icon(
                           onPressed: _searchProduct,
-                          icon: const Icon(Icons.search_rounded, size: 18),
+                          icon: const Icon(Icons.search_rounded, size: 18, color: Colors.black),
                           label: const Text('Search Product'),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.primary.withAlpha(20),
-                            foregroundColor: AppTheme.primary,
-                            elevation: 0,
+                            backgroundColor: AppTheme.primary,
+                            foregroundColor: Colors.black,
                           ),
                         ),
                       ),
@@ -220,23 +219,26 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.all(AppTheme.spacingMd),
                       decoration: BoxDecoration(
-                        color: AppTheme.surfaceVariant,
+                        color: AppTheme.primaryLight,
                         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                        border: Border.all(color: Colors.black, width: 2),
                       ),
                       child: Row(
                         children: [
                           Container(
-                            width: 52,
-                            height: 52,
+                            width: 56,
+                            height: 56,
                             decoration: BoxDecoration(
-                              color: AppTheme.primary.withAlpha(20),
+                              color: Colors.white,
                               borderRadius: BorderRadius.circular(
                                 AppTheme.radiusMd,
                               ),
+                              border: Border.all(color: Colors.black, width: 2),
                             ),
                             child: const Icon(
                               Icons.inventory_2_rounded,
-                              color: AppTheme.primary,
+                              color: Colors.black,
+                              size: 28,
                             ),
                           ),
                           const SizedBox(width: AppTheme.spacingMd),
@@ -247,8 +249,8 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
                                 Text(
                                   _selectedProduct!['name'],
                                   style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 16,
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 18,
                                     color: AppTheme.textPrimary,
                                   ),
                                 ),
@@ -325,18 +327,19 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
                         const SizedBox(height: AppTheme.spacingLg),
                         SizedBox(
                           width: double.infinity,
-                          height: 50,
+                          height: 54,
                           child: ElevatedButton.icon(
                             onPressed: _submitAdjustment,
                             icon: const Icon(
                               Icons.check_circle_outline_rounded,
-                              size: 20,
+                              size: 22,
+                              color: Colors.black,
                             ),
                             label: const Text(
                               'Confirm Adjustment',
                               style: TextStyle(
                                 fontSize: 16,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w900,
                               ),
                             ),
                           ),
@@ -363,8 +366,9 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
       padding: const EdgeInsets.all(AppTheme.spacingLg),
       decoration: BoxDecoration(
         color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-        boxShadow: AppTheme.softShadow,
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        border: Border.all(color: Colors.black, width: AppTheme.borderWidth),
+        boxShadow: AppTheme.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -375,27 +379,29 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
                 width: 28,
                 height: 28,
                 decoration: BoxDecoration(
-                  color: AppTheme.primary,
+                  color: AppTheme.warning,
                   borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                  border: Border.all(color: Colors.black, width: 2),
                 ),
                 child: Center(
                   child: Text(
                     stepNumber,
                     style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
+                      color: Colors.black,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 14,
                     ),
                   ),
                 ),
               ),
               const SizedBox(width: AppTheme.spacingMd),
               Text(
-                title,
+                title.toUpperCase(),
                 style: const TextStyle(
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w900,
                   fontSize: 16,
                   color: AppTheme.textPrimary,
+                  letterSpacing: 1.1,
                 ),
               ),
             ],
@@ -425,9 +431,9 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
             decoration: BoxDecoration(
               color: AppTheme.surfaceVariant,
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-              border: Border.all(color: AppTheme.divider),
+              border: Border.all(color: Colors.black, width: 2),
             ),
-            child: Icon(icon, color: AppTheme.primary, size: 24),
+            child: Icon(icon, color: Colors.black, size: 24),
           ),
         ),
       ),
@@ -438,8 +444,8 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
     return Text(
       text,
       style: const TextStyle(
-        fontWeight: FontWeight.w500,
-        fontSize: 13,
+        fontWeight: FontWeight.w800,
+        fontSize: 14,
         color: AppTheme.textPrimary,
       ),
     );
