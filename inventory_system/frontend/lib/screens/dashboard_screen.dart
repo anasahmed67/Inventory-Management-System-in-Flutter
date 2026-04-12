@@ -107,7 +107,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       // ── Mobile: drawer + bottom nav ──
       return Scaffold(
         appBar: AppBar(
-          title: Text(currentLabel, style: const TextStyle(fontWeight: FontWeight.w900)),
+          title: Text(
+            currentLabel,
+            style: const TextStyle(fontWeight: FontWeight.w900),
+          ),
           actions: [_buildLogoutButton(authProvider)],
         ),
         body: content,
@@ -125,7 +128,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       width: AppTheme.sidebarWidth,
       decoration: const BoxDecoration(
         color: AppTheme.sidebarBg,
-        border: Border(right: BorderSide(color: Colors.black, width: AppTheme.borderWidth)),
+        border: Border(
+          right: BorderSide(color: Colors.black, width: AppTheme.borderWidth),
+        ),
       ),
       child: Column(
         children: [
@@ -152,7 +157,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 const SizedBox(width: AppTheme.spacingMd),
                 const Expanded(
                   child: Text(
-                    'InvenTrack',
+                    'Stockify',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 22,
@@ -197,9 +202,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           borderRadius: BorderRadius.circular(
                             AppTheme.radiusMd,
                           ),
-                          border: isActive 
-                            ? Border.all(color: Colors.white, width: 2)
-                            : null,
+                          border: isActive
+                              ? Border.all(color: Colors.white, width: 2)
+                              : null,
                         ),
                         child: Row(
                           children: [
@@ -366,58 +371,66 @@ class _DashboardScreenState extends State<DashboardScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Welcome Header ──
-            Wrap(
-              alignment: WrapAlignment.spaceBetween,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Welcome back!',
-                      style: Theme.of(context).textTheme.headlineMedium
-                          ?.copyWith(fontWeight: FontWeight.w900, fontSize: isWide ? 28 : 22),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Here\'s your inventory overview',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
-                    ),
-                  ],
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primary,
-                    borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                    border: Border.all(color: Colors.black, width: 2),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
+            SizedBox(
+              width: double.infinity,
+              child: Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(
-                        Icons.person_outline_rounded,
-                        size: 16,
-                        color: Colors.black,
-                      ),
-                      const SizedBox(width: 8),
                       Text(
-                        role,
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 12,
+                        'Welcome back!',
+                        style: Theme.of(context).textTheme.headlineMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.w900,
+                              fontSize: isWide ? 28 : 22,
+                            ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Here\'s your inventory overview',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ],
                   ),
-                ),
-              ],
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primary,
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                      border: Border.all(color: Colors.black, width: 2),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.person_outline_rounded,
+                          size: 16,
+                          color: Colors.black,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          role,
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: AppTheme.spacingLg),
 
@@ -728,13 +741,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final crossAxisCount = constraints.maxWidth > 800
             ? 4
             : constraints.maxWidth > 450
-                ? 2
-                : 1;
+            ? 2
+            : 1;
         final aspectRatio = constraints.maxWidth > 800
             ? 2.5
             : constraints.maxWidth > 450
-                ? 2.0
-                : 3.5;
+            ? 2.0
+            : 3.5;
 
         return GridView.count(
           crossAxisCount: crossAxisCount,
@@ -760,7 +773,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           decoration: BoxDecoration(
             color: action.color,
             borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-            border: Border.all(color: Colors.black, width: AppTheme.borderWidth),
+            border: Border.all(
+              color: Colors.black,
+              width: AppTheme.borderWidth,
+            ),
             boxShadow: AppTheme.softShadow,
           ),
           child: Row(

@@ -150,7 +150,7 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Scan or enter a barcode to adjust stock levels',
+                  'Scan or enter a barcode or SKU to adjust stock levels',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: AppTheme.spacingLg),
@@ -167,7 +167,7 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
                             child: TextField(
                               controller: _barcodeController,
                               decoration: const InputDecoration(
-                                hintText: 'Enter barcode...',
+                                hintText: 'Enter barcode or SKU...',
                                 prefixIcon: Icon(
                                   Icons.qr_code_rounded,
                                   size: 20,

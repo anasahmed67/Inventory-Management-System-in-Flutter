@@ -303,7 +303,7 @@ void main() async {
     try {
       final conn = await getConnection();
       final results =
-          await conn.query('SELECT * FROM products WHERE barcode = ?', [code]);
+          await conn.query('SELECT * FROM products WHERE barcode = ? OR sku = ?', [code, code]);
       await conn.close();
 
       if (results.isEmpty) {

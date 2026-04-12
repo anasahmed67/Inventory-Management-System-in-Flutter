@@ -110,12 +110,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Header ──
-            Wrap(
-              alignment: WrapAlignment.spaceBetween,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: 12,
-              runSpacing: 12,
-              children: [
+            SizedBox(
+              width: double.infinity,
+              child: Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 12,
+                runSpacing: 12,
+                children: [
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -165,6 +167,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   ],
                 ),
               ],
+            ),
             ),
             const SizedBox(height: AppTheme.spacingLg),
 
