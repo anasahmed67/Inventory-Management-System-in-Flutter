@@ -5,6 +5,7 @@ import '../providers/auth_provider.dart';
 import '../providers/product_provider.dart';
 import '../services/export_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/skeleton_loader.dart';
 import 'product_form_screen.dart';
 
 class ProductListScreen extends StatefulWidget {
@@ -16,6 +17,7 @@ class ProductListScreen extends StatefulWidget {
 
 class _ProductListScreenState extends State<ProductListScreen> {
   String _searchQuery = "";
+  String _activeFilter = 'All';
   final Set<int> _loadingIds = {};
 
   void _quickAdjustQuantity(
@@ -77,18 +79,39 @@ class _ProductListScreenState extends State<ProductListScreen> {
     final isAdmin = authProvider.role == 'admin';
     final productProvider = Provider.of<ProductProvider>(context);
 
-    final filteredProducts = productProvider.products.where((p) {
+    // Apply search + filter
+    var filteredProducts = productProvider.products.where((p) {
       final query = _searchQuery.toLowerCase();
       final name = (p['name'] ?? '').toString().toLowerCase();
       final sku = (p['sku'] ?? '').toString().toLowerCase();
       return name.contains(query) || sku.contains(query);
     }).toList();
 
+    // ── Item 6: Apply filter chips ──
+    if (_activeFilter == 'Low Stock') {
+      filteredProducts = filteredProducts.where((p) {
+        final qty = p['quantity'] ?? 0;
+        final threshold = p['low_stock_threshold'] ?? 5;
+        return qty <= threshold && qty > 0;
+      }).toList();
+    } else if (_activeFilter == 'In Stock') {
+      filteredProducts = filteredProducts.where((p) {
+        final qty = p['quantity'] ?? 0;
+        final threshold = p['low_stock_threshold'] ?? 5;
+        return qty > threshold;
+      }).toList();
+    } else if (_activeFilter == 'Out of Stock') {
+      filteredProducts = filteredProducts.where((p) {
+        final qty = p['quantity'] ?? 0;
+        return qty == 0;
+      }).toList();
+    }
+
     final width = MediaQuery.of(context).size.width;
     final isMobile = width < 600;
 
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.bgColor(context),
       floatingActionButton: isMobile && isAdmin
           ? FloatingActionButton(
               onPressed: () async {
@@ -174,13 +197,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
             // ── Search Bar ──
             Container(
               decoration: BoxDecoration(
-                boxShadow: AppTheme.softShadow,
+                boxShadow: AppTheme.adaptiveSoftShadow(context),
                 borderRadius: BorderRadius.circular(AppTheme.radiusMd),
               ),
               child: TextField(
                 decoration: const InputDecoration(
                   hintText: 'Search by name or SKU...',
-                  prefixIcon: Icon(Icons.search_rounded, size: 22, color: Colors.black),
+                  prefixIcon: Icon(Icons.search_rounded, size: 22),
                 ),
                 onChanged: (value) {
                   setState(() => _searchQuery = value);
@@ -189,11 +212,27 @@ class _ProductListScreenState extends State<ProductListScreen> {
             ),
             const SizedBox(height: AppTheme.spacingMd),
 
+            // ── Item 6: Filter Chips ──
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: ['All', 'In Stock', 'Low Stock', 'Out of Stock']
+                    .map((filter) => Padding(
+                          padding: const EdgeInsets.only(right: AppTheme.spacingSm),
+                          child: _buildFilterChip(filter),
+                        ))
+                    .toList(),
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacingMd),
+
             // ── Product List ──
             Expanded(
               child: productProvider.isLoading && productProvider.products.isEmpty
-                  ? const Center(
-                      child: CircularProgressIndicator(color: AppTheme.primary),
+                  // ── Item 7: Skeleton Loading ──
+                  ? ListView.builder(
+                      itemCount: 5,
+                      itemBuilder: (_, _) => const ProductCardSkeleton(),
                     )
                   : filteredProducts.isEmpty
                       ? Center(
@@ -203,13 +242,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
                               Icon(
                                 Icons.inventory_2_outlined,
                                 size: 64,
-                                color: AppTheme.textHint,
+                                color: AppTheme.hintColor(context),
                               ),
                               const SizedBox(height: AppTheme.spacingMd),
                               Text(
                                 'No products found',
                                 style: Theme.of(context).textTheme.titleMedium
-                                    ?.copyWith(color: AppTheme.textHint),
+                                    ?.copyWith(color: AppTheme.hintColor(context)),
                               ),
                             ],
                           ),
@@ -236,6 +275,42 @@ class _ProductListScreenState extends State<ProductListScreen> {
     );
   }
 
+  // ── Item 6: Filter Chip Builder ──
+  Widget _buildFilterChip(String label) {
+    final isActive = _activeFilter == label;
+    final isDark = AppTheme.isDark(context);
+    final borderCol = AppTheme.borderColor(context);
+
+    return GestureDetector(
+      onTap: () => setState(() => _activeFilter = label),
+      child: AnimatedContainer(
+        duration: AppTheme.quickAnim,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isActive
+              ? AppTheme.primary
+              : AppTheme.cardColor(context),
+          borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+          border: Border.all(
+            color: isActive ? (isDark ? AppTheme.primary : Colors.black) : borderCol,
+            width: 2,
+          ),
+          boxShadow: isActive ? AppTheme.shadowSm : null,
+        ),
+        child: Text(
+          label.toUpperCase(),
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w900,
+            color: isActive ? Colors.black : AppTheme.textColor(context),
+            letterSpacing: 0.5,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Item 1: Product Card with NeoCard press effect ──
   Widget _buildProductCard(
     Map<String, dynamic> product,
     bool isAdmin,
@@ -249,21 +324,18 @@ class _ProductListScreenState extends State<ProductListScreen> {
     final price = double.tryParse(product['price'].toString()) ?? 0;
     final name = product['name'] ?? 'No Name';
     final sku = product['sku'] ?? 'NO-SKU';
-    final category = product['category'] ?? 'General';
     final isLoading = _loadingIds.contains(id);
+    final borderCol = AppTheme.borderColor(context);
+    final textCol = AppTheme.textColor(context);
+    final isDark = AppTheme.isDark(context);
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final isNarrow = constraints.maxWidth < 480;
 
-        return Container(
-          margin: const EdgeInsets.only(bottom: AppTheme.spacingMd),
-          decoration: BoxDecoration(
-            color: AppTheme.surface,
-            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-            border: Border.all(color: Colors.black, width: AppTheme.borderWidth),
-            boxShadow: AppTheme.cardShadow,
-          ),
+        return _NeoProductCard(
+          borderCol: borderCol,
+          isDark: isDark,
           child: Column(
             children: [
               Padding(
@@ -277,16 +349,16 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       decoration: BoxDecoration(
                         color: isLowStock ? AppTheme.danger : AppTheme.primary,
                         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                        border: Border.all(color: Colors.black, width: 2),
+                        border: Border.all(color: borderCol, width: 2),
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
                             quantity.toString(),
-                            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
+                            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Colors.black),
                           ),
-                          const Text('QTY', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 8)),
+                          const Text('QTY', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 8, color: Colors.black)),
                         ],
                       ),
                     ),
@@ -300,7 +372,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                               Expanded(
                                 child: Text(
                                   name.toUpperCase(),
-                                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
+                                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: textCol),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -311,22 +383,21 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           ),
                           Text(
                             'SKU: $sku',
-                            style: const TextStyle(fontWeight: FontWeight.w700, color: AppTheme.textHint, fontSize: 11),
+                            style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.hintColor(context), fontSize: 11),
                           ),
                           const SizedBox(height: 8),
                           Wrap(
                             spacing: 8,
                             runSpacing: 4,
                             children: [
-                              _buildInfoChip(category),
                               _buildInfoChip('${AppTheme.currencySymbol}${NumberFormat('#,###.##').format(price)}'),
                               if (isLowStock)
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                   decoration: BoxDecoration(
-                                    color: AppTheme.dangerLight,
+                                    color: isDark ? const Color(0xFF3D1F1F) : AppTheme.dangerLight,
                                     borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-                                    border: Border.all(color: Colors.black, width: 1),
+                                    border: Border.all(color: borderCol, width: 1),
                                   ),
                                   child: const Text(
                                     'LOW STOCK',
@@ -346,17 +417,17 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 ),
               ),
               Container(
-                decoration: const BoxDecoration(
-                  border: Border(top: BorderSide(color: Colors.black, width: 1.5)),
-                  color: AppTheme.surfaceVariant,
+                decoration: BoxDecoration(
+                  border: Border(top: BorderSide(color: borderCol, width: 1.5)),
+                  color: AppTheme.surfaceVariantColor(context),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMd, vertical: 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       'QUICK STOCK ADJUST',
-                      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 10, letterSpacing: 0.5),
+                      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 10, letterSpacing: 0.5, color: textCol),
                     ),
                     Row(
                       children: [
@@ -428,7 +499,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
         const PopupMenuItem(value: 'edit', child: Text('EDIT')),
         if (isAdmin) const PopupMenuItem(value: 'delete', child: Text('DELETE')),
       ],
-      icon: const Icon(Icons.more_vert_rounded, color: Colors.black),
+      icon: Icon(Icons.more_vert_rounded, color: AppTheme.textColor(context)),
     );
   }
 
@@ -474,18 +545,19 @@ class _ProductListScreenState extends State<ProductListScreen> {
   }
 
   Widget _buildInfoChip(String text) {
+    final isDark = AppTheme.isDark(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: AppTheme.infoLight,
+        color: isDark ? AppTheme.darkSurfaceVariant : AppTheme.infoLight,
         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        border: Border.all(color: Colors.black, width: 1.5),
+        border: Border.all(color: AppTheme.borderColor(context), width: 1.5),
       ),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 11,
-          color: Colors.black,
+          color: AppTheme.textColor(context),
           fontWeight: FontWeight.w800,
         ),
       ),
@@ -511,7 +583,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
             decoration: BoxDecoration(
               color: color,
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-              border: Border.all(color: Colors.black, width: 1.5),
+              border: Border.all(color: AppTheme.borderColor(context), width: 1.5),
             ),
             child: Icon(icon, color: Colors.black, size: 20),
           ),
@@ -538,8 +610,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
             decoration: BoxDecoration(
               color: AppTheme.info,
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-              border: Border.all(color: Colors.black, width: 2),
-              boxShadow: AppTheme.softShadow,
+              border: Border.all(color: AppTheme.borderColor(context), width: 2),
+              boxShadow: AppTheme.adaptiveSoftShadow(context),
             ),
             child: Icon(icon, color: Colors.black, size: 24),
           ),
@@ -564,7 +636,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
           decoration: BoxDecoration(
             color: color,
             borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-            border: Border.all(color: Colors.black, width: 1.5),
+            border: Border.all(color: AppTheme.borderColor(context), width: 1.5),
           ),
           child: Center(
             child: Icon(
@@ -578,3 +650,34 @@ class _ProductListScreenState extends State<ProductListScreen> {
     );
   }
 }
+
+/// Product card with neo-brutalist styling (no hover animation)
+class _NeoProductCard extends StatelessWidget {
+  final Widget child;
+  final Color borderCol;
+  final bool isDark;
+
+  const _NeoProductCard({
+    required this.child,
+    required this.borderCol,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppTheme.spacingMd),
+      decoration: BoxDecoration(
+        color: AppTheme.cardColor(context),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        border: Border.all(color: borderCol, width: AppTheme.borderWidth),
+        boxShadow: AppTheme.adaptiveShadow(context),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd - 1),
+        child: child,
+      ),
+    );
+  }
+}
+

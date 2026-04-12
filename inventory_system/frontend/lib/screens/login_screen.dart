@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -72,14 +71,18 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppTheme.isDark(context);
+    final borderCol = AppTheme.borderColor(context);
+    final textCol = AppTheme.textColor(context);
+
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.bgColor(context),
       body: Stack(
         children: [
           // ── Neo-Brutalist Grid Background ──
           Positioned.fill(
             child: CustomPaint(
-              painter: GridPainter(),
+              painter: GridPainter(isDark: isDark),
             ),
           ),
           
@@ -87,12 +90,18 @@ class _LoginScreenState extends State<LoginScreen>
           Positioned(
             top: -100,
             right: -100,
-            child: _buildDecorativeCircle(AppTheme.primary.withOpacity(0.1), 300),
+            child: _buildDecorativeCircle(
+              AppTheme.primary.withValues(alpha: isDark ? 0.15 : 0.1),
+              300,
+            ),
           ),
           Positioned(
             bottom: -50,
             left: -50,
-            child: _buildDecorativeCircle(AppTheme.success.withOpacity(0.1), 200),
+            child: _buildDecorativeCircle(
+              AppTheme.success.withValues(alpha: isDark ? 0.15 : 0.1),
+              200,
+            ),
           ),
 
           // ── Main Content ──
@@ -114,10 +123,10 @@ class _LoginScreenState extends State<LoginScreen>
                         vertical: AppTheme.spacingLg,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppTheme.cardColor(context),
                         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                        border: Border.all(color: Colors.black, width: AppTheme.borderWidth),
-                        boxShadow: AppTheme.cardShadow,
+                        border: Border.all(color: borderCol, width: AppTheme.borderWidth),
+                        boxShadow: AppTheme.adaptiveShadow(context),
                       ),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -140,23 +149,23 @@ class _LoginScreenState extends State<LoginScreen>
                           const SizedBox(height: AppTheme.spacingMd),
 
                           // ── Title ──
-                          const Text(
+                          Text(
                             'WELCOME BACK',
                             style: TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.w900,
-                              color: AppTheme.textPrimary,
+                              color: textCol,
                               letterSpacing: -1.0,
                             ),
                           ),
                           const SizedBox(height: 4),
-                          const Text(
+                          Text(
                             'SIGN IN TO ACCESS YOUR INVENTORY',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w800,
-                              color: AppTheme.textSecondary,
+                              color: AppTheme.secondaryTextColor(context),
                               letterSpacing: 0.5,
                             ),
                           ),
@@ -183,7 +192,7 @@ class _LoginScreenState extends State<LoginScreen>
                                     ? Icons.visibility_off_outlined
                                     : Icons.visibility_outlined,
                                 size: 20,
-                                color: AppTheme.textHint,
+                                color: AppTheme.hintColor(context),
                               ),
                               onPressed: () => setState(
                                 () => _obscurePassword = !_obscurePassword,
@@ -255,7 +264,11 @@ class _LoginScreenState extends State<LoginScreen>
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
-      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black),
+      style: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: AppTheme.textColor(context),
+      ),
       decoration: InputDecoration(
         hintText: hintText,
         prefixIcon: Icon(prefixIcon, size: 20),
@@ -274,10 +287,16 @@ class _LoginScreenState extends State<LoginScreen>
 }
 
 class GridPainter extends CustomPainter {
+  final bool isDark;
+
+  GridPainter({this.isDark = false});
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.black.withOpacity(0.04)
+      ..color = isDark
+          ? Colors.white.withValues(alpha: 0.03)
+          : Colors.black.withValues(alpha: 0.04)
       ..strokeWidth = 1.0;
 
     const spacing = 30.0;
@@ -292,5 +311,5 @@ class GridPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant GridPainter oldDelegate) => oldDelegate.isDark != isDark;
 }

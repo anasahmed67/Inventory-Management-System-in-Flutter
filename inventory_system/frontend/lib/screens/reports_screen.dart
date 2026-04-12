@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../providers/product_provider.dart';
 import '../services/export_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/neo_card.dart';
 
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
@@ -27,6 +28,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
   @override
   Widget build(BuildContext context) {
     final productProvider = Provider.of<ProductProvider>(context);
+    final isDark = AppTheme.isDark(context);
+    final borderCol = AppTheme.borderColor(context);
+    final textCol = AppTheme.textColor(context);
 
     // Calculate Top 5 products and "Others" share
     final List<dynamic> sortedProducts = List.from(productProvider.products);
@@ -57,14 +61,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
       AppTheme.warning,
       AppTheme.info,
       AppTheme.danger,
-      Colors.grey.shade400, // For "Others"
+      isDark ? const Color(0xFF555566) : Colors.grey.shade400,
     ];
 
     final width = MediaQuery.of(context).size.width;
     final isMobile = width < 600;
 
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.bgColor(context),
       body: RefreshIndicator(
         onRefresh: () async => _refresh(),
         child: SingleChildScrollView(
@@ -82,15 +86,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 ),
               ),
               const SizedBox(height: AppTheme.spacingLg),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(AppTheme.spacingLg),
-                decoration: BoxDecoration(
-                  color: AppTheme.info,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                  border: Border.all(color: Colors.black, width: AppTheme.borderWidth),
-                  boxShadow: AppTheme.cardShadow,
-                ),
+
+              // Total Value Card
+              NeoCard(
+                color: AppTheme.info,
                 child: Column(
                   children: [
                     const Text(
@@ -115,132 +114,44 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 ),
               ),
               const SizedBox(height: 32),
-              const Text(
+              Text(
                 'TOP 5 PRODUCTS BY VALUE',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.1),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.1, color: textCol),
               ),
               const SizedBox(height: 16),
               if (top5.isNotEmpty) ...[
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 4,
-                      child: SizedBox(
-                        height: 220,
-                        child: PieChart(
-                          PieChartData(
-                            sectionsSpace: 2,
-                            centerSpaceRadius: 0,
-                            sections: [
-                              ...top5.asMap().entries.map((entry) {
-                                final index = entry.key;
-                                final p = entry.value;
-                                final val = (p['quantity'] ?? 0) * (double.tryParse(p['price'].toString()) ?? 0);
-                                final percentage = totalInventoryValue > 0 ? (val / totalInventoryValue * 100) : 0.0;
-                                
-                                return PieChartSectionData(
-                                  value: val,
-                                  title: percentage > 5 ? '${percentage.toStringAsFixed(1)}%' : '',
-                                  radius: 100,
-                                  titleStyle: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.black,
-                                  ),
-                                  color: palette[index],
-                                  borderSide: const BorderSide(color: Colors.black, width: 2),
-                                );
-                              }),
-                              if (othersValue > 0)
-                                PieChartSectionData(
-                                  value: othersValue,
-                                  title: (othersValue / totalInventoryValue * 100) > 5 
-                                      ? '${(othersValue / totalInventoryValue * 100).toStringAsFixed(1)}%' 
-                                      : '',
-                                  radius: 100,
-                                  titleStyle: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.black,
-                                  ),
-                                  color: palette[5],
-                                  borderSide: const BorderSide(color: Colors.black, width: 2),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 24),
-                    Expanded(
-                      flex: 5,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                isMobile
+                    ? Column(
                         children: [
-                          ...top5.asMap().entries.map((entry) {
-                            final index = entry.key;
-                            final p = entry.value;
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 4),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 12,
-                                    height: 12,
-                                    decoration: BoxDecoration(
-                                      color: palette[index],
-                                      border: Border.all(color: Colors.black, width: 1.5),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      p['name'].toString().toUpperCase(),
-                                      style: const TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w800,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }),
-                          if (othersValue > 0)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 4),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 12,
-                                    height: 12,
-                                    decoration: BoxDecoration(
-                                      color: palette[5],
-                                      border: Border.all(color: Colors.black, width: 1.5),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Text(
-                                    'OTHERS',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                          SizedBox(
+                            height: 220,
+                            child: _buildPieChart(top5, othersValue, totalInventoryValue, palette, borderCol),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildLegend(top5, othersValue, palette, textCol, borderCol),
+                        ],
+                      )
+                    : Row(
+                        children: [
+                          Expanded(
+                            flex: 4,
+                            child: SizedBox(
+                              height: 220,
+                              child: _buildPieChart(top5, othersValue, totalInventoryValue, palette, borderCol),
                             ),
+                          ),
+                          const SizedBox(width: 24),
+                          Expanded(
+                            flex: 5,
+                            child: _buildLegend(top5, othersValue, palette, textCol, borderCol),
+                          ),
                         ],
                       ),
-                    ),
-                  ],
-                ),
               ],
               const SizedBox(height: 32),
-              const Text(
+              Text(
                 'EXPORT REPORTS',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.1),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.1, color: textCol),
               ),
               const SizedBox(height: 16),
               Row(
@@ -262,16 +173,26 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 ],
               ),
               const SizedBox(height: 32),
-              const Text(
+              Text(
                 'LOW STOCK ALERTS',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.1),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.1, color: textCol),
               ),
               const SizedBox(height: 16),
               if (productProvider.lowStockProducts.isEmpty)
-                const Card(
-                  child: ListTile(
-                    leading: Icon(Icons.check_circle, color: Colors.green),
-                    title: Text('All stock levels are healthy'),
+                NeoCard(
+                  color: isDark ? const Color(0xFF1A3D2E) : AppTheme.successLight,
+                  child: Row(
+                    children: [
+                      const Icon(Icons.check_circle, color: AppTheme.success, size: 24),
+                      const SizedBox(width: AppTheme.spacingMd),
+                      Text(
+                        'All stock levels are healthy',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          color: textCol,
+                        ),
+                      ),
+                    ],
                   ),
                 )
               else
@@ -280,20 +201,20 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     return Container(
                       margin: const EdgeInsets.only(bottom: AppTheme.spacingMd),
                       decoration: BoxDecoration(
-                        color: AppTheme.surface,
+                        color: AppTheme.cardColor(context),
                         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                        border: Border.all(color: Colors.black, width: AppTheme.borderWidth),
-                        boxShadow: AppTheme.softShadow,
+                        border: Border.all(color: borderCol, width: AppTheme.borderWidth),
+                        boxShadow: AppTheme.adaptiveSoftShadow(context),
                       ),
                       child: ListTile(
                         contentPadding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMd, vertical: 8),
                         title: Text(
                           item['name'].toString().toUpperCase(),
-                          style: const TextStyle(fontWeight: FontWeight.w900),
+                          style: TextStyle(fontWeight: FontWeight.w900, color: textCol),
                         ),
                         subtitle: Text(
                           'SKU: ${item['sku']}',
-                          style: const TextStyle(fontWeight: FontWeight.w700, color: AppTheme.textSecondary),
+                          style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.secondaryTextColor(context)),
                         ),
                         trailing: Container(
                           padding: const EdgeInsets.symmetric(
@@ -303,7 +224,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                           decoration: BoxDecoration(
                             color: AppTheme.danger,
                             borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                            border: Border.all(color: Colors.black, width: 2),
+                            border: Border.all(color: borderCol, width: 2),
                           ),
                           child: Text(
                             '${item['quantity']}',
@@ -321,6 +242,115 @@ class _ReportsScreenState extends State<ReportsScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildPieChart(List<dynamic> top5, double othersValue, double totalInventoryValue, List<Color> palette, Color borderCol) {
+    return PieChart(
+      PieChartData(
+        sectionsSpace: 2,
+        centerSpaceRadius: 0,
+        sections: [
+          ...top5.asMap().entries.map((entry) {
+            final index = entry.key;
+            final p = entry.value;
+            final val = (p['quantity'] ?? 0) * (double.tryParse(p['price'].toString()) ?? 0);
+            final percentage = totalInventoryValue > 0 ? (val / totalInventoryValue * 100) : 0.0;
+            
+            return PieChartSectionData(
+              value: val,
+              title: percentage > 5 ? '${percentage.toStringAsFixed(1)}%' : '',
+              radius: 100,
+              titleStyle: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w900,
+                color: Colors.black,
+              ),
+              color: palette[index],
+              borderSide: BorderSide(color: borderCol, width: 2),
+            );
+          }),
+          if (othersValue > 0)
+            PieChartSectionData(
+              value: othersValue,
+              title: (othersValue / totalInventoryValue * 100) > 5 
+                  ? '${(othersValue / totalInventoryValue * 100).toStringAsFixed(1)}%' 
+                  : '',
+              radius: 100,
+              titleStyle: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w900,
+                color: Colors.black,
+              ),
+              color: palette[5],
+              borderSide: BorderSide(color: borderCol, width: 2),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLegend(List<dynamic> top5, double othersValue, List<Color> palette, Color textCol, Color borderCol) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ...top5.asMap().entries.map((entry) {
+          final index = entry.key;
+          final p = entry.value;
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              children: [
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: palette[index],
+                    border: Border.all(color: borderCol, width: 1.5),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    p['name'].toString().toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: textCol,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+        if (othersValue > 0)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              children: [
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: palette[5],
+                    border: Border.all(color: borderCol, width: 1.5),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'OTHERS',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: textCol,
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 }

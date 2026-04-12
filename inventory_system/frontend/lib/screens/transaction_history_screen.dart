@@ -45,8 +45,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.bgColor(context),
       body: Padding(
         padding: const EdgeInsets.all(AppTheme.spacingLg),
         child: Column(
@@ -128,7 +129,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 32),
               child: Text(
                 _errorMessage,
-                style: const TextStyle(color: AppTheme.textSecondary),
+                style: TextStyle(color: AppTheme.secondaryTextColor(context)),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -142,10 +143,10 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.receipt_long_outlined,
               size: 64,
-              color: AppTheme.textHint,
+              color: AppTheme.hintColor(context),
             ),
             const SizedBox(height: AppTheme.spacingMd),
             Text(
@@ -153,21 +154,115 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
               style: Theme.of(context)
                   .textTheme
                   .titleMedium
-                  ?.copyWith(color: AppTheme.textHint),
+                  ?.copyWith(color: AppTheme.hintColor(context)),
             ),
           ],
         ),
       );
     }
 
+    // ── Item 11: Group transactions by date ──
+    final grouped = _groupByDate(_transactions);
+
     return RefreshIndicator(
       onRefresh: _fetchTransactions,
       child: ListView.builder(
-        itemCount: _transactions.length,
+        itemCount: grouped.length,
         itemBuilder: (context, index) {
-          final tx = _transactions[index];
-          return _buildTransactionCard(tx);
+          final group = grouped[index];
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Date header
+              Padding(
+                padding: EdgeInsets.only(
+                  top: index == 0 ? 0 : AppTheme.spacingMd,
+                  bottom: AppTheme.spacingSm,
+                ),
+                child: _buildDateHeader(group.label),
+              ),
+              // Transaction cards
+              ...group.transactions.map((tx) => _buildTransactionCard(tx)),
+            ],
+          );
         },
+      ),
+    );
+  }
+
+  // ── Item 11: Date grouping logic ──
+  List<_DateGroup> _groupByDate(List<dynamic> transactions) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+
+    final Map<String, List<Map<String, dynamic>>> groups = {};
+    final Map<String, DateTime> groupDates = {};
+
+    for (final tx in transactions) {
+      final dateStr = tx['transaction_date'] ?? '';
+      DateTime? date;
+      if (dateStr.isNotEmpty) {
+        date = DateTime.tryParse(dateStr)?.toLocal();
+      }
+
+      String label;
+      DateTime sortDate;
+      if (date != null) {
+        final dateOnly = DateTime(date.year, date.month, date.day);
+        if (dateOnly == today) {
+          label = 'Today';
+        } else if (dateOnly == yesterday) {
+          label = 'Yesterday';
+        } else {
+          label = DateFormat('MMM dd, yyyy').format(date);
+        }
+        sortDate = dateOnly;
+      } else {
+        label = 'Unknown Date';
+        sortDate = DateTime(1970);
+      }
+
+      groups.putIfAbsent(label, () => []);
+      groups[label]!.add(tx);
+      groupDates.putIfAbsent(label, () => sortDate);
+    }
+
+    // Sort groups by date (most recent first)
+    final sortedEntries = groups.entries.toList()
+      ..sort((a, b) {
+        final dateA = groupDates[a.key] ?? DateTime(1970);
+        final dateB = groupDates[b.key] ?? DateTime(1970);
+        return dateB.compareTo(dateA);
+      });
+
+    return sortedEntries
+        .map((e) => _DateGroup(label: e.key, transactions: e.value))
+        .toList();
+  }
+
+  Widget _buildDateHeader(String label) {
+    final isDark = AppTheme.isDark(context);
+    final borderCol = AppTheme.borderColor(context);
+    final isToday = label == 'Today';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      decoration: BoxDecoration(
+        color: isToday
+            ? AppTheme.primary
+            : (isDark ? AppTheme.darkSurfaceVariant : AppTheme.surfaceVariant),
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+        border: Border.all(color: borderCol, width: 1.5),
+      ),
+      child: Text(
+        label.toUpperCase(),
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 0.8,
+          color: isToday ? Colors.black : AppTheme.textColor(context),
+        ),
       ),
     );
   }
@@ -177,6 +272,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     final isOut = type == 'OUT';
     final iconColor = isOut ? AppTheme.danger : AppTheme.success;
     final iconData = isOut ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded;
+    final isDark = AppTheme.isDark(context);
+    final borderCol = AppTheme.borderColor(context);
+    final textCol = AppTheme.textColor(context);
 
     final dateStr = tx['transaction_date'] ?? '';
     DateTime? date;
@@ -195,10 +293,10 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: AppTheme.spacingMd),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
+        color: AppTheme.cardColor(context),
         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        border: Border.all(color: Colors.black, width: AppTheme.borderWidth),
-        boxShadow: AppTheme.softShadow,
+        border: Border.all(color: borderCol, width: AppTheme.borderWidth),
+        boxShadow: AppTheme.adaptiveSoftShadow(context),
       ),
       padding: const EdgeInsets.all(AppTheme.spacingMd),
       child: Row(
@@ -210,9 +308,22 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             decoration: BoxDecoration(
               color: iconColor,
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-              border: Border.all(color: Colors.black, width: 2),
+              border: Border.all(color: borderCol, width: 2),
             ),
-            child: Icon(iconData, color: Colors.black, size: 26),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(iconData, color: Colors.black, size: 20),
+                Text(
+                  isOut ? 'OUT' : 'IN',
+                  style: const TextStyle(
+                    fontSize: 8,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(width: AppTheme.spacingMd),
           Expanded(
@@ -225,21 +336,31 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                     Expanded(
                       child: Text(
                         productName,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.w900,
                           fontSize: 16,
-                          color: AppTheme.textPrimary,
+                          color: textCol,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    Text(
-                      '${isOut ? '-' : '+'}$quantity qty',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 16,
-                        color: Colors.black,
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: isOut
+                            ? (isDark ? const Color(0xFF3D1F1F) : AppTheme.dangerLight)
+                            : (isDark ? const Color(0xFF1A3D2E) : AppTheme.successLight),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                        border: Border.all(color: borderCol, width: 1.5),
+                      ),
+                      child: Text(
+                        '${isOut ? '-' : '+'}$quantity qty',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 13,
+                          color: isOut ? AppTheme.danger : AppTheme.success,
+                        ),
                       ),
                     ),
                   ],
@@ -250,16 +371,16 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                   children: [
                     Text(
                       formattedDate,
-                      style: const TextStyle(
-                        color: AppTheme.textSecondary,
+                      style: TextStyle(
+                        color: AppTheme.secondaryTextColor(context),
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                     Text(
                       'By: $user',
-                      style: const TextStyle(
-                        color: AppTheme.textSecondary,
+                      style: TextStyle(
+                        color: AppTheme.secondaryTextColor(context),
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
                       ),
@@ -271,15 +392,15 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
-                      color: AppTheme.infoLight,
+                      color: isDark ? AppTheme.darkSurfaceVariant : AppTheme.infoLight,
                       borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                      border: Border.all(color: Colors.black, width: 1.5),
+                      border: Border.all(color: borderCol, width: 1.5),
                     ),
                     child: Text(
                       'REASON: $reason',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: Colors.black,
+                        color: textCol,
                         fontWeight: FontWeight.w900,
                       ),
                     ),
@@ -311,8 +432,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             decoration: BoxDecoration(
               color: AppTheme.info,
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-              border: Border.all(color: Colors.black, width: 2),
-              boxShadow: AppTheme.softShadow,
+              border: Border.all(color: AppTheme.borderColor(context), width: 2),
+              boxShadow: AppTheme.adaptiveSoftShadow(context),
             ),
             child: Icon(icon, color: Colors.black, size: 24),
           ),
@@ -320,4 +441,12 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       ),
     );
   }
+}
+
+// ── Data class for grouped transactions ──
+class _DateGroup {
+  final String label;
+  final List<Map<String, dynamic>> transactions;
+
+  _DateGroup({required this.label, required this.transactions});
 }

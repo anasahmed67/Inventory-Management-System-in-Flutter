@@ -5,6 +5,7 @@ import '../providers/auth_provider.dart';
 import '../providers/product_provider.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/neo_card.dart';
 
 class StockAdjustScreen extends StatefulWidget {
   const StockAdjustScreen({super.key});
@@ -131,8 +132,12 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppTheme.isDark(context);
+    final borderCol = AppTheme.borderColor(context);
+    final textCol = AppTheme.textColor(context);
+
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.bgColor(context),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppTheme.spacingLg),
@@ -157,6 +162,7 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
 
                 // ── Step 1: Search ──
                 _buildSectionCard(
+                  context: context,
                   stepNumber: '1',
                   title: 'Find Product',
                   child: Column(
@@ -213,15 +219,16 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
                 else if (_selectedProduct != null) ...[
                   // ── Step 2: Product Info ──
                   _buildSectionCard(
+                    context: context,
                     stepNumber: '2',
                     title: 'Product Found',
                     child: Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(AppTheme.spacingMd),
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryLight,
+                        color: isDark ? AppTheme.darkSurfaceVariant : AppTheme.primaryLight,
                         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                        border: Border.all(color: Colors.black, width: 2),
+                        border: Border.all(color: borderCol, width: 2),
                       ),
                       child: Row(
                         children: [
@@ -229,15 +236,15 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
                             width: 56,
                             height: 56,
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: isDark ? AppTheme.darkSurface : Colors.white,
                               borderRadius: BorderRadius.circular(
                                 AppTheme.radiusMd,
                               ),
-                              border: Border.all(color: Colors.black, width: 2),
+                              border: Border.all(color: borderCol, width: 2),
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.inventory_2_rounded,
-                              color: Colors.black,
+                              color: textCol,
                               size: 28,
                             ),
                           ),
@@ -248,19 +255,19 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
                               children: [
                                 Text(
                                   _selectedProduct!['name'],
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontWeight: FontWeight.w900,
                                     fontSize: 18,
-                                    color: AppTheme.textPrimary,
+                                    color: textCol,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Row(
                                   children: [
-                                    const Text(
+                                    Text(
                                       'Current Stock: ',
                                       style: TextStyle(
-                                        color: AppTheme.textSecondary,
+                                        color: AppTheme.secondaryTextColor(context),
                                         fontSize: 13,
                                       ),
                                     ),
@@ -297,12 +304,13 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
 
                   // ── Step 3: Adjustment ──
                   _buildSectionCard(
+                    context: context,
                     stepNumber: '3',
                     title: 'Make Adjustment',
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildLabel('Quantity Change'),
+                        _buildLabel('Quantity Change', context),
                         const SizedBox(height: AppTheme.spacingSm),
                         TextField(
                           controller: _quantityController,
@@ -313,9 +321,28 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
                                 'Positive = Stock IN, Negative = Stock OUT',
                           ),
                           keyboardType: TextInputType.number,
+                          onChanged: (_) => setState(() {}),
                         ),
                         const SizedBox(height: AppTheme.spacingMd),
-                        _buildLabel('Reason'),
+
+                        // ── Item 9: Preset Quantity Chips ──
+                        _buildLabel('Quick Select', context),
+                        const SizedBox(height: AppTheme.spacingSm),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _buildPresetChip('+1', 1),
+                            _buildPresetChip('+5', 5),
+                            _buildPresetChip('+10', 10),
+                            _buildPresetChip('-1', -1),
+                            _buildPresetChip('-5', -5),
+                            _buildPresetChip('-10', -10),
+                          ],
+                        ),
+                        const SizedBox(height: AppTheme.spacingMd),
+
+                        _buildLabel('Reason', context),
                         const SizedBox(height: AppTheme.spacingSm),
                         TextField(
                           controller: _reasonController,
@@ -325,6 +352,13 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
                           ),
                         ),
                         const SizedBox(height: AppTheme.spacingLg),
+
+                        // ── Item 12: Confirmation Preview ──
+                        if (_quantityController.text.isNotEmpty) ...[
+                          _buildConfirmationPreview(context),
+                          const SizedBox(height: AppTheme.spacingMd),
+                        ],
+
                         SizedBox(
                           width: double.infinity,
                           height: 54,
@@ -356,20 +390,149 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
     );
   }
 
+  // ── Item 9: Preset Chip Builder ──
+  Widget _buildPresetChip(String label, int value) {
+    final isPositive = value > 0;
+    final isDark = AppTheme.isDark(context);
+    final borderCol = AppTheme.borderColor(context);
+    final isActive = _quantityController.text == value.toString();
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _quantityController.text = value.toString();
+        });
+      },
+      child: AnimatedContainer(
+        duration: AppTheme.quickAnim,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isActive
+              ? (isPositive ? AppTheme.success : AppTheme.danger)
+              : (isDark ? AppTheme.darkSurfaceVariant : AppTheme.surfaceVariant),
+          borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+          border: Border.all(
+            color: isActive ? Colors.black : borderCol,
+            width: 2,
+          ),
+          boxShadow: isActive ? AppTheme.shadowSm : null,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w900,
+            color: isActive ? Colors.black : AppTheme.textColor(context),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Item 12: Confirmation Preview Card ──
+  Widget _buildConfirmationPreview(BuildContext context) {
+    final isDark = AppTheme.isDark(context);
+    final borderCol = AppTheme.borderColor(context);
+    final quantityChange = int.tryParse(_quantityController.text) ?? 0;
+    final currentQty = _selectedProduct!['quantity'] ?? 0;
+    final newQty = currentQty + quantityChange;
+    final productName = _selectedProduct!['name'] ?? 'Unknown';
+    final isPositive = quantityChange >= 0;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppTheme.spacingMd),
+      decoration: BoxDecoration(
+        color: isPositive
+            ? (isDark ? const Color(0xFF1A3D2E) : AppTheme.successLight)
+            : (isDark ? const Color(0xFF3D1F1F) : AppTheme.dangerLight),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        border: Border.all(color: borderCol, width: 2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.preview_rounded,
+                size: 18,
+                color: AppTheme.textColor(context),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'PREVIEW',
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 12,
+                  letterSpacing: 1.0,
+                  color: AppTheme.textColor(context),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          RichText(
+            text: TextSpan(
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textColor(context),
+              ),
+              children: [
+                TextSpan(
+                  text: isPositive ? 'Adding ' : 'Removing ',
+                ),
+                TextSpan(
+                  text: '${isPositive ? '+' : ''}$quantityChange',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    color: isPositive ? AppTheme.success : AppTheme.danger,
+                  ),
+                ),
+                TextSpan(text: ' to '),
+                TextSpan(
+                  text: productName,
+                  style: const TextStyle(fontWeight: FontWeight.w900),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '$currentQty → $newQty units',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+              color: AppTheme.textColor(context),
+            ),
+          ),
+          if (newQty < 0)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                '⚠ Warning: Stock will go below zero!',
+                style: TextStyle(
+                  color: AppTheme.danger,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSectionCard({
+    required BuildContext context,
     required String stepNumber,
     required String title,
     required Widget child,
   }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppTheme.spacingLg),
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        border: Border.all(color: Colors.black, width: AppTheme.borderWidth),
-        boxShadow: AppTheme.cardShadow,
-      ),
+    final textCol = AppTheme.textColor(context);
+
+    return NeoCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -397,10 +560,10 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
               const SizedBox(width: AppTheme.spacingMd),
               Text(
                 title.toUpperCase(),
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.w900,
                   fontSize: 16,
-                  color: AppTheme.textPrimary,
+                  color: textCol,
                   letterSpacing: 1.1,
                 ),
               ),
@@ -418,6 +581,8 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
     required String tooltip,
     required VoidCallback onTap,
   }) {
+    final borderCol = AppTheme.borderColor(context);
+
     return Tooltip(
       message: tooltip,
       child: Material(
@@ -429,24 +594,24 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: AppTheme.surfaceVariant,
+              color: AppTheme.surfaceVariantColor(context),
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-              border: Border.all(color: Colors.black, width: 2),
+              border: Border.all(color: borderCol, width: 2),
             ),
-            child: Icon(icon, color: Colors.black, size: 24),
+            child: Icon(icon, color: AppTheme.textColor(context), size: 24),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildLabel(String text) {
+  Widget _buildLabel(String text, BuildContext context) {
     return Text(
       text,
-      style: const TextStyle(
+      style: TextStyle(
         fontWeight: FontWeight.w800,
         fontSize: 14,
-        color: AppTheme.textPrimary,
+        color: AppTheme.textColor(context),
       ),
     );
   }

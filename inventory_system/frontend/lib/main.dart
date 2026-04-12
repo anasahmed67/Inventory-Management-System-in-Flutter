@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/product_provider.dart';
 import 'providers/analytics_provider.dart';
+import 'providers/theme_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'theme/app_theme.dart';
@@ -13,6 +14,7 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ProductProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProxyProvider<ProductProvider, AnalyticsProvider>(
           create: (_) => AnalyticsProvider(),
           update: (_, productProvider, analyticsProvider) =>
@@ -29,18 +31,24 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Inventory Management',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      // Use Consumer to conditionally show Login or Dashboard
-      home: Consumer<AuthProvider>(
-        builder: (context, authProvider, _) {
-          return authProvider.isLoggedIn
-              ? const DashboardScreen()
-              : const LoginScreen();
-        },
-      ),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, _) {
+        return MaterialApp(
+          title: 'Inventory Management',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: themeProvider.themeMode,
+          // Use Consumer to conditionally show Login or Dashboard
+          home: Consumer<AuthProvider>(
+            builder: (context, authProvider, _) {
+              return authProvider.isLoggedIn
+                  ? const DashboardScreen()
+                  : const LoginScreen();
+            },
+          ),
+        );
+      },
     );
   }
 }

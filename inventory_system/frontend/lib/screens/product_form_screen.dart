@@ -104,9 +104,11 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   @override
   Widget build(BuildContext context) {
     final isNarrow = MediaQuery.of(context).size.width < 450;
+    final borderCol = AppTheme.borderColor(context);
+    final textCol = AppTheme.textColor(context);
 
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.bgColor(context),
       appBar: AppBar(
         title: Text(isEdit ? 'EDIT PRODUCT' : 'ADD NEW PRODUCT', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
         leading: IconButton(
@@ -122,10 +124,10 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
             child: Container(
               padding: const EdgeInsets.all(AppTheme.spacingLg),
               decoration: BoxDecoration(
-                color: AppTheme.surface,
+                color: AppTheme.cardColor(context),
                 borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                border: Border.all(color: Colors.black, width: AppTheme.borderWidth),
-                boxShadow: AppTheme.cardShadow,
+                border: Border.all(color: borderCol, width: AppTheme.borderWidth),
+                boxShadow: AppTheme.adaptiveShadow(context),
               ),
               child: Form(
                 key: _formKey,
@@ -141,7 +143,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                           decoration: BoxDecoration(
                             color: AppTheme.primary,
                             borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                            border: Border.all(color: Colors.black, width: 2),
+                            border: Border.all(color: borderCol, width: 2),
                           ),
                           child: Icon(isEdit ? Icons.edit_rounded : Icons.add_business_rounded, color: Colors.black, size: 24),
                         ),
@@ -150,15 +152,15 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(isEdit ? 'PRODUCT DETAILS' : 'NEW PRODUCT', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 20)),
-                              Text(isEdit ? 'Update info below' : 'Fill details below', style: const TextStyle(fontWeight: FontWeight.w700, color: AppTheme.textSecondary, fontSize: 12)),
+                              Text(isEdit ? 'PRODUCT DETAILS' : 'NEW PRODUCT', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20, color: textCol)),
+                              Text(isEdit ? 'Update info below' : 'Fill details below', style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.secondaryTextColor(context), fontSize: 12)),
                             ],
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: AppTheme.spacingLg),
-                    const Divider(color: Colors.black, thickness: 1.5),
+                    Divider(color: borderCol, thickness: 1.5),
                     const SizedBox(height: AppTheme.spacingLg),
 
                     // SKU
@@ -168,10 +170,15 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                       controller: _skuController,
                       decoration: InputDecoration(
                         hintText: 'e.g. SKU-001',
-                        prefixIcon: const Icon(Icons.tag_rounded, size: 20, color: Colors.black),
+                        prefixIcon: const Icon(Icons.tag_rounded, size: 20),
                         suffixIcon: isEdit ? null : IconButton(
-                          icon: const Icon(Icons.auto_awesome_rounded, size: 20, color: AppTheme.primary),
                           onPressed: _generateSku,
+                          icon: Icon(
+                            Icons.auto_awesome_rounded,
+                            size: 20,
+                            color: AppTheme.textColor(context),
+                          ),
+                          tooltip: 'Auto-generate SKU',
                         ),
                       ),
                       validator: (v) => v!.isEmpty ? 'Enter SKU' : null,
@@ -185,7 +192,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                       controller: _nameController,
                       decoration: const InputDecoration(
                         hintText: 'e.g. Wireless Mouse',
-                        prefixIcon: Icon(Icons.inventory_2_outlined, size: 20, color: Colors.black),
+                        prefixIcon: Icon(Icons.inventory_2_outlined, size: 20),
                       ),
                       validator: (v) => v!.isEmpty ? 'Enter Name' : null,
                     ),
@@ -197,7 +204,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                       const SizedBox(height: AppTheme.spacingSm),
                       TextFormField(
                         controller: _quantityController,
-                        decoration: const InputDecoration(prefixIcon: Icon(Icons.numbers_rounded, size: 20, color: Colors.black)),
+                        decoration: const InputDecoration(prefixIcon: Icon(Icons.numbers_rounded, size: 20)),
                         keyboardType: TextInputType.number,
                         validator: (v) => v!.isEmpty ? 'Enter Qty' : null,
                       ),
@@ -206,7 +213,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                       const SizedBox(height: AppTheme.spacingSm),
                       TextFormField(
                         controller: _priceController,
-                        decoration: const InputDecoration(prefixIcon: Icon(Icons.payments_outlined, size: 20, color: Colors.black)),
+                        decoration: const InputDecoration(prefixIcon: Icon(Icons.payments_outlined, size: 20)),
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         validator: (v) => v!.isEmpty ? 'Enter Price' : null,
                       ),
@@ -221,7 +228,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                                 const SizedBox(height: AppTheme.spacingSm),
                                 TextFormField(
                                   controller: _quantityController,
-                                  decoration: const InputDecoration(prefixIcon: Icon(Icons.numbers_rounded, size: 20, color: Colors.black)),
+                                  decoration: const InputDecoration(prefixIcon: Icon(Icons.numbers_rounded, size: 20)),
                                   keyboardType: TextInputType.number,
                                   validator: (v) => v!.isEmpty ? 'Enter Qty' : null,
                                 ),
@@ -237,7 +244,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                                 const SizedBox(height: AppTheme.spacingSm),
                                 TextFormField(
                                   controller: _priceController,
-                                  decoration: const InputDecoration(prefixIcon: Icon(Icons.payments_outlined, size: 20, color: Colors.black)),
+                                  decoration: const InputDecoration(prefixIcon: Icon(Icons.payments_outlined, size: 20)),
                                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                                   validator: (v) => v!.isEmpty ? 'Enter Price' : null,
                                 ),
@@ -255,7 +262,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                       controller: _barcodeController,
                       decoration: const InputDecoration(
                         hintText: 'e.g. 1234567890',
-                        prefixIcon: Icon(Icons.qr_code_rounded, size: 20, color: Colors.black),
+                        prefixIcon: Icon(Icons.qr_code_rounded, size: 20),
                       ),
                     ),
                     const SizedBox(height: AppTheme.spacingXl),
@@ -282,7 +289,15 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   }
 
   Widget _buildLabel(String text) {
-    return Text(text, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: Colors.black, letterSpacing: 0.5));
+    return Text(
+      text,
+      style: TextStyle(
+        fontWeight: FontWeight.w900,
+        fontSize: 13,
+        color: AppTheme.textColor(context),
+        letterSpacing: 0.5,
+      ),
+    );
   }
 
   @override

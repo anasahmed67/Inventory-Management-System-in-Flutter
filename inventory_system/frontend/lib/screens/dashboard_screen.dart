@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/product_provider.dart';
 import '../providers/analytics_provider.dart';
+import '../providers/theme_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/chart_widgets.dart';
+import '../widgets/neo_card.dart';
+import '../widgets/animated_counter.dart';
 import 'product_list_screen.dart';
 import 'stock_adjust_screen.dart';
 import 'transaction_history_screen.dart';
@@ -93,13 +95,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
         content = _buildDashboardContent(context, authProvider, isWide);
     }
 
+    // ── Item 5: Page Transitions ──
+    final animatedContent = AnimatedSwitcher(
+      duration: AppTheme.normalAnim,
+      switchInCurve: AppTheme.defaultCurve,
+      switchOutCurve: Curves.easeIn,
+      transitionBuilder: (child, animation) => FadeTransition(
+        opacity: animation,
+        child: SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0.03, 0),
+            end: Offset.zero,
+          ).animate(animation),
+          child: child,
+        ),
+      ),
+      child: KeyedSubtree(
+        key: ValueKey(_selectedIndex),
+        child: content,
+      ),
+    );
+
     if (isWide) {
       // ── Desktop: persistent sidebar ──
       return Scaffold(
         body: Row(
           children: [
             _buildSidebar(navItems, authProvider),
-            Expanded(child: content),
+            Expanded(child: animatedContent),
           ],
         ),
       );
@@ -111,12 +134,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
             currentLabel,
             style: const TextStyle(fontWeight: FontWeight.w900),
           ),
-          actions: [_buildLogoutButton(authProvider)],
+          actions: [
+            _buildThemeToggle(),
+            _buildLogoutButton(authProvider),
+          ],
         ),
-        body: content,
+        body: animatedContent,
         bottomNavigationBar: _buildBottomNav(navItems),
       );
     }
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // Theme Toggle Button
+  // ════════════════════════════════════════════════════════════════
+  Widget _buildThemeToggle() {
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, _) {
+        return IconButton(
+          onPressed: themeProvider.toggleTheme,
+          icon: AnimatedSwitcher(
+            duration: AppTheme.quickAnim,
+            transitionBuilder: (child, anim) =>
+                RotationTransition(turns: anim, child: child),
+            child: Icon(
+              themeProvider.isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+              key: ValueKey(themeProvider.isDark),
+            ),
+          ),
+          tooltip: themeProvider.isDark ? 'Switch to Light' : 'Switch to Dark',
+        );
+      },
+    );
   }
 
   // ════════════════════════════════════════════════════════════════
@@ -124,12 +173,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ════════════════════════════════════════════════════════════════
   Widget _buildSidebar(List<_NavItem> items, AuthProvider authProvider) {
     final role = authProvider.role?.toUpperCase() ?? 'STAFF';
+    final isDark = AppTheme.isDark(context);
+    final sidebarBgColor = AppTheme.sidebarColor(context);
+
     return Container(
       width: AppTheme.sidebarWidth,
-      decoration: const BoxDecoration(
-        color: AppTheme.sidebarBg,
+      decoration: BoxDecoration(
+        color: sidebarBgColor,
         border: Border(
-          right: BorderSide(color: Colors.black, width: AppTheme.borderWidth),
+          right: BorderSide(
+            color: isDark ? AppTheme.darkBorder : Colors.black,
+            width: AppTheme.borderWidth,
+          ),
         ),
       ),
       child: Column(
@@ -240,6 +295,59 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
 
+          // ── Dark mode toggle in sidebar ──
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMd),
+            child: Consumer<ThemeProvider>(
+              builder: (context, themeProvider, _) {
+                return Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                    onTap: themeProvider.toggleTheme,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppTheme.spacingMd,
+                        vertical: AppTheme.spacingMd - 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppTheme.darkSurfaceVariant
+                            : Colors.white.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                        border: Border.all(
+                          color: isDark ? AppTheme.darkBorder : Colors.white.withValues(alpha: 0.2),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            themeProvider.isDark
+                                ? Icons.light_mode_rounded
+                                : Icons.dark_mode_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                          const SizedBox(width: AppTheme.spacingMd),
+                          Text(
+                            themeProvider.isDark ? 'Light Mode' : 'Dark Mode',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: AppTheme.spacingSm),
+
           // Bottom: user role badge + logout
           Container(
             margin: const EdgeInsets.all(AppTheme.spacingMd),
@@ -319,7 +427,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return NavigationBar(
       selectedIndex: _selectedIndex,
       onDestinationSelected: (i) => setState(() => _selectedIndex = i),
-      backgroundColor: AppTheme.surface,
       indicatorColor: AppTheme.primary.withAlpha(30),
       destinations: items
           .map(
@@ -353,6 +460,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final price = double.tryParse(p['price'].toString()) ?? 0;
       totalValue += qty * price;
     }
+
+    final isDark = AppTheme.isDark(context);
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -407,7 +516,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     decoration: BoxDecoration(
                       color: AppTheme.primary,
                       borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                      border: Border.all(color: Colors.black, width: 2),
+                      border: Border.all(color: AppTheme.borderColor(context), width: 2),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -434,42 +543,49 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: AppTheme.spacingLg),
 
-            // ── Stat Cards ──
+            // ── Item 2 & 3: Staggered Stat Cards with Animated Counters ──
             LayoutBuilder(
               builder: (context, constraints) {
-                final cardWidth = constraints.maxWidth > 700
-                    ? null
-                    : double.infinity;
                 final isWide = constraints.maxWidth > 700;
 
                 final cards = [
-                  _buildStatCard(
-                    icon: Icons.inventory_2_rounded,
-                    iconColor: AppTheme.primary,
-                    iconBg: AppTheme.surfaceVariant,
-                    label: 'Total Products',
-                    value: NumberFormat('#,###').format(totalProducts),
-                    width: cardWidth,
+                  _StaggeredEntry(
+                    index: 0,
+                    child: _buildStatCard(
+                      context: context,
+                      icon: Icons.inventory_2_rounded,
+                      iconColor: AppTheme.primary,
+                      iconBg: AppTheme.surfaceVariantColor(context),
+                      label: 'Total Products',
+                      value: totalProducts,
+                      width: isWide ? null : double.infinity,
+                    ),
                   ),
-                  _buildStatCard(
-                    icon: Icons.warning_amber_rounded,
-                    iconColor: AppTheme.danger,
-                    iconBg: AppTheme.dangerLight,
-                    label: 'Low Stock',
-                    value: NumberFormat('#,###').format(lowStockCount),
-                    subtitle: lowStockCount > 0
-                        ? 'Needs attention'
-                        : 'All good',
-                    width: cardWidth,
+                  _StaggeredEntry(
+                    index: 1,
+                    child: _buildStatCard(
+                      context: context,
+                      icon: Icons.warning_amber_rounded,
+                      iconColor: AppTheme.danger,
+                      iconBg: isDark ? const Color(0xFF3D1F1F) : AppTheme.dangerLight,
+                      label: 'Low Stock',
+                      value: lowStockCount,
+                      subtitle: lowStockCount > 0 ? 'Needs attention' : 'All good',
+                      width: isWide ? null : double.infinity,
+                    ),
                   ),
-                  _buildStatCard(
-                    icon: Icons.payments_rounded,
-                    iconColor: AppTheme.success,
-                    iconBg: AppTheme.successLight,
-                    label: 'Total Value',
-                    value:
-                        '${AppTheme.currencySymbol}${NumberFormat('#,###').format(totalValue.toInt())}',
-                    width: cardWidth,
+                  _StaggeredEntry(
+                    index: 2,
+                    child: _buildStatCard(
+                      context: context,
+                      icon: Icons.payments_rounded,
+                      iconColor: AppTheme.success,
+                      iconBg: isDark ? const Color(0xFF1A3D2E) : AppTheme.successLight,
+                      label: 'Total Value',
+                      value: totalValue.toInt(),
+                      prefix: AppTheme.currencySymbol,
+                      width: isWide ? null : double.infinity,
+                    ),
                   ),
                 ];
 
@@ -508,12 +624,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
             // ── Low Stock Alert ──
             if (lowStockCount > 0) ...[
-              _buildAlertBanner(
-                icon: Icons.warning_amber_rounded,
-                text:
-                    '$lowStockCount product${lowStockCount > 1 ? 's' : ''} below stock threshold',
-                color: AppTheme.danger,
-                bgColor: AppTheme.dangerLight,
+              _StaggeredEntry(
+                index: 3,
+                child: _buildAlertBanner(
+                  context: context,
+                  icon: Icons.warning_amber_rounded,
+                  text:
+                      '$lowStockCount product${lowStockCount > 1 ? 's' : ''} below stock threshold',
+                  color: AppTheme.danger,
+                  bgColor: isDark ? const Color(0xFF3D1F1F) : AppTheme.dangerLight,
+                ),
               ),
               const SizedBox(height: AppTheme.spacingLg),
             ],
@@ -539,41 +659,57 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
-                                child: _buildChartCard(
-                                  title: 'Stock Health',
-                                  child: StockStatusChart(
-                                    summary: analytics.stockSummary,
+                                child: _StaggeredEntry(
+                                  index: 4,
+                                  child: _buildChartCard(
+                                    context: context,
+                                    title: 'Stock Health',
+                                    child: StockStatusChart(
+                                      summary: analytics.stockSummary,
+                                    ),
+                                    height: 300,
                                   ),
-                                  height: 300,
                                 ),
                               ),
                               const SizedBox(width: AppTheme.spacingLg),
                               Expanded(
-                                child: _buildChartCard(
-                                  title: 'Top 5 Products (Qty)',
-                                  child: TopProductsChart(
-                                    products: analytics.topProducts,
+                                child: _StaggeredEntry(
+                                  index: 5,
+                                  child: _buildChartCard(
+                                    context: context,
+                                    title: 'Top 5 Products (Qty)',
+                                    child: TopProductsChart(
+                                      products: analytics.topProducts,
+                                    ),
+                                    height: 300,
                                   ),
-                                  height: 300,
                                 ),
                               ),
                             ],
                           )
                         else ...[
-                          _buildChartCard(
-                            title: 'Stock Health',
-                            child: StockStatusChart(
-                              summary: analytics.stockSummary,
+                          _StaggeredEntry(
+                            index: 4,
+                            child: _buildChartCard(
+                              context: context,
+                              title: 'Stock Health',
+                              child: StockStatusChart(
+                                summary: analytics.stockSummary,
+                              ),
+                              height: 250,
                             ),
-                            height: 250,
                           ),
                           const SizedBox(height: AppTheme.spacingLg),
-                          _buildChartCard(
-                            title: 'Top 5 Products (Qty)',
-                            child: TopProductsChart(
-                              products: analytics.topProducts,
+                          _StaggeredEntry(
+                            index: 5,
+                            child: _buildChartCard(
+                              context: context,
+                              title: 'Top 5 Products (Qty)',
+                              child: TopProductsChart(
+                                products: analytics.topProducts,
+                              ),
+                              height: 250,
                             ),
-                            height: 250,
                           ),
                         ],
                         const SizedBox(height: AppTheme.spacingLg),
@@ -599,24 +735,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  // ── Item 3: Stat Card with Animated Counter ──
   Widget _buildStatCard({
+    required BuildContext context,
     required IconData icon,
     required Color iconColor,
     required Color iconBg,
     required String label,
-    required String value,
+    required int value,
     String? subtitle,
+    String prefix = '',
     double? width,
   }) {
-    return Container(
+    final borderCol = AppTheme.borderColor(context);
+    final textCol = AppTheme.textColor(context);
+    final secondaryCol = AppTheme.secondaryTextColor(context);
+
+    return NeoCard(
       width: width,
-      padding: const EdgeInsets.all(AppTheme.spacingLg),
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        border: Border.all(color: Colors.black, width: AppTheme.borderWidth),
-        boxShadow: AppTheme.cardShadow,
-      ),
       child: Row(
         children: [
           Container(
@@ -625,9 +761,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             decoration: BoxDecoration(
               color: iconBg,
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-              border: Border.all(color: Colors.black, width: 2),
+              border: Border.all(color: borderCol, width: 2),
             ),
-            child: Icon(icon, color: Colors.black, size: 28),
+            child: Icon(icon, color: iconColor, size: 28),
           ),
           const SizedBox(width: AppTheme.spacingMd),
           Expanded(
@@ -636,29 +772,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 Text(
                   label,
-                  style: const TextStyle(
-                    color: AppTheme.textPrimary,
+                  style: TextStyle(
+                    color: textCol,
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: const TextStyle(
+                AnimatedCounter(
+                  value: value.toString(),
+                  prefix: prefix,
+                  style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.w900,
-                    color: AppTheme.textPrimary,
+                    color: textCol,
                   ),
                 ),
                 if (subtitle != null) ...[
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: AppTheme.textSecondary,
+                      color: secondaryCol,
                     ),
                   ),
                 ],
@@ -671,29 +808,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildAlertBanner({
+    required BuildContext context,
     required IconData icon,
     required String text,
     required Color color,
     required Color bgColor,
   }) {
+    final borderCol = AppTheme.borderColor(context);
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppTheme.spacingMd),
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        border: Border.all(color: Colors.black, width: AppTheme.borderWidth),
-        boxShadow: AppTheme.softShadow,
+        border: Border.all(color: borderCol, width: AppTheme.borderWidth),
+        boxShadow: AppTheme.adaptiveSoftShadow(context),
       ),
       child: Row(
         children: [
-          Icon(icon, color: Colors.black, size: 24),
+          Icon(icon, color: color, size: 24),
           const SizedBox(width: AppTheme.spacingMd),
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(
-                color: Colors.black,
+              style: TextStyle(
+                color: AppTheme.textColor(context),
                 fontWeight: FontWeight.w800,
                 fontSize: 14,
               ),
@@ -756,72 +896,71 @@ class _DashboardScreenState extends State<DashboardScreen> {
           mainAxisSpacing: AppTheme.spacingMd,
           crossAxisSpacing: AppTheme.spacingMd,
           childAspectRatio: aspectRatio,
-          children: actions.map((a) => _buildQuickActionCard(a)).toList(),
+          children: actions
+              .asMap()
+              .entries
+              .map((entry) => _StaggeredEntry(
+                    index: 6 + entry.key,
+                    child: _buildQuickActionCard(entry.value),
+                  ))
+              .toList(),
         );
       },
     );
   }
 
   Widget _buildQuickActionCard(_QuickAction action) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        onTap: action.onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMd),
-          decoration: BoxDecoration(
-            color: action.color,
-            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-            border: Border.all(
-              color: Colors.black,
-              width: AppTheme.borderWidth,
+
+    return NeoCard(
+      onTap: action.onTap,
+      color: action.color,
+      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMd),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+              border: Border.all(color: Colors.black, width: 2),
             ),
-            boxShadow: AppTheme.softShadow,
+            child: Icon(action.icon, color: Colors.black, size: 22),
           ),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                  border: Border.all(color: Colors.black, width: 2),
-                ),
-                child: Icon(action.icon, color: Colors.black, size: 22),
+          const SizedBox(width: AppTheme.spacingMd),
+          Expanded(
+            child: Text(
+              action.label,
+              style: const TextStyle(
+                fontWeight: FontWeight.w900,
+                fontSize: 14,
+                color: Colors.black,
               ),
-              const SizedBox(width: AppTheme.spacingMd),
-              Expanded(
-                child: Text(
-                  action.label,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 14,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+          const Icon(Icons.arrow_forward_rounded, color: Colors.black, size: 18),
+        ],
       ),
     );
   }
 
   Widget _buildChartCard({
+    required BuildContext context,
     required String title,
     required Widget child,
     required double height,
   }) {
+    final borderCol = AppTheme.borderColor(context);
+    final textCol = AppTheme.textColor(context);
+
     return Container(
       height: height,
       padding: const EdgeInsets.all(AppTheme.spacingLg),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
+        color: AppTheme.cardColor(context),
         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        border: Border.all(color: Colors.black, width: AppTheme.borderWidth),
-        boxShadow: AppTheme.cardShadow,
+        border: Border.all(color: borderCol, width: AppTheme.borderWidth),
+        boxShadow: AppTheme.adaptiveShadow(context),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -831,13 +970,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w900,
-                  color: AppTheme.textPrimary,
+                  color: textCol,
                 ),
               ),
-              if (title == 'Stock Health') _buildLegend(),
+              // ── Item 8: Full Legend Labels ──
+              if (title == 'Stock Health') _buildLegend(context),
             ],
           ),
           const SizedBox(height: AppTheme.spacingLg),
@@ -847,35 +987,43 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildLegend() {
+  // ── Item 8: Full legend labels ──
+  Widget _buildLegend(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _legendItem(AppTheme.success, 'H'),
-        const SizedBox(width: 8),
-        _legendItem(AppTheme.warning, 'L'),
-        const SizedBox(width: 8),
-        _legendItem(AppTheme.danger, 'O'),
+        _legendItem(context, AppTheme.success, 'Healthy'),
+        const SizedBox(width: 12),
+        _legendItem(context, AppTheme.warning, 'Low'),
+        const SizedBox(width: 12),
+        _legendItem(context, AppTheme.danger, 'Out'),
       ],
     );
   }
 
-  Widget _legendItem(Color color, String label) {
+  Widget _legendItem(BuildContext context, Color color, String label) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: AppTheme.borderColor(context),
+              width: 1.5,
+            ),
+          ),
         ),
         const SizedBox(width: 4),
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 10,
-            color: AppTheme.textSecondary,
-            fontWeight: FontWeight.bold,
+          style: TextStyle(
+            fontSize: 11,
+            color: AppTheme.secondaryTextColor(context),
+            fontWeight: FontWeight.w700,
           ),
         ),
       ],
@@ -924,6 +1072,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ) ??
         false;
     if (confirm) authProvider.logout();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Item 2: Staggered Entry Animation Widget
+// ═══════════════════════════════════════════════════════════════════
+class _StaggeredEntry extends StatelessWidget {
+  final int index;
+  final Widget child;
+
+  const _StaggeredEntry({required this.index, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: Duration(milliseconds: 400 + (index * 80)),
+      curve: Curves.easeOutCubic,
+      builder: (context, value, child) => Opacity(
+        opacity: value.clamp(0.0, 1.0),
+        child: Transform.translate(
+          offset: Offset(0, 24 * (1 - value)),
+          child: child,
+        ),
+      ),
+      child: child,
+    );
   }
 }
 
