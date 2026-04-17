@@ -435,6 +435,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       selectedIndex: _selectedIndex,
       onDestinationSelected: (i) => setState(() => _selectedIndex = i),
       indicatorColor: AppTheme.primary.withAlpha(30),
+      labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
       destinations: items
           .map(
             (item) => NavigationDestination(

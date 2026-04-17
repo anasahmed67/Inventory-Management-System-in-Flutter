@@ -337,6 +337,27 @@ class AppTheme {
           side: const BorderSide(color: Colors.black, width: 1.5),
         ),
       ),
+
+      // NavigationBar
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: surface,
+        indicatorColor: primary.withAlpha(50),
+        labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return GoogleFonts.inter(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              color: textPrimary,
+            );
+          }
+          return GoogleFonts.inter(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: textSecondary,
+          );
+        }),
+      ),
     );
   }
 
@@ -494,10 +515,25 @@ class AppTheme {
         ),
       ),
 
-      // NavigationBar (for bottom nav in dark mode)
+      // NavigationBar
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: darkSurface,
-        indicatorColor: primary.withValues(alpha: 0.2),
+        indicatorColor: primary.withAlpha(50),
+        labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return GoogleFonts.inter(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              color: darkTextPrimary,
+            );
+          }
+          return GoogleFonts.inter(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: darkTextSecondary,
+          );
+        }),
       ),
     );
   }
