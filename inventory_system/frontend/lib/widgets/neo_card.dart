@@ -27,6 +27,7 @@ class NeoCard extends StatefulWidget {
 class _NeoCardState extends State<NeoCard> {
   bool _pressed = false;
 
+  // Track pointer gestures to depress and release the card
   void _onTapDown(TapDownDetails _) => setState(() => _pressed = true);
   void _onTapUp(TapUpDetails _) => setState(() => _pressed = false);
   void _onTapCancel() => setState(() => _pressed = false);

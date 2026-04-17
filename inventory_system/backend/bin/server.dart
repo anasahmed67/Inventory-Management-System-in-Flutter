@@ -1,3 +1,10 @@
+/// Server Entry Point
+/// 
+/// This file initializes the Dart backend server using `shelf` and `shelf_router`.
+/// It manages the database connections, sets up CORS settings, and outlines all 
+/// the RESTful API routes for authentication, product management, stock operations, 
+/// and analytical data retrieval used by the frontend.
+
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -9,8 +16,12 @@ import 'package:shelf_cors_headers/shelf_cors_headers.dart';
 import 'package:mysql1/mysql1.dart';
 import 'package:dotenv/dotenv.dart';
 
+/// Main application loop.
+/// 
+/// Initializes environment variables, configures the database connection pool,
+/// defines API router endpoints, and starts the HTTP server listener.
 void main() async {
-  // Load environment variables
+  // Load environment variables (e.g., from a .env file or system env) to securely get DB credentials
   final env = DotEnv(includePlatformEnvironment: true)..load();
   final dbHost = env['DB_HOST'] ?? 'localhost';
   final dbPort = int.tryParse(env['DB_PORT'] ?? '3306') ?? 3306;
@@ -39,7 +50,13 @@ void main() async {
 
   final router = Router();
 
-  // Helper to convert DB objects (like Blobs) to JSON-serializable types
+  /// Converts internal database types into standard JSON-serializable formats.
+  /// 
+  /// This is particularly helpful for `Uint8List` (Blob data) which isn't directly 
+  /// serializable by Dart's built-in `jsonEncode`. 
+  /// 
+  /// [value] The data value retrieved from the SQL query.
+  /// Returns a Dart primitive or map/list safe for `jsonEncode`.
   dynamic _convertToSerializable(dynamic value) {
     if (value == null || value is String || value is num || value is bool) {
       return value;
@@ -60,7 +77,13 @@ void main() async {
     }
   }
 
-  // Helper for JSON responses
+  /// Formats the API output into a standard JSON `shelf.Response`.
+  /// 
+  /// Automatically injects CORS headers so the Flutter web app can communicate 
+  /// with this server.
+  /// 
+  /// [data] The payload to serialize (e.g., Maps, Lists).
+  /// [statusCode] HTTP status code (defaults to 200 OK).
   Response jsonResponse(dynamic data, {int statusCode = 200}) {
     return Response(
       statusCode,
@@ -76,6 +99,9 @@ void main() async {
 
   // --- Auth Endpoints ---
 
+  /// POST /api/login
+  /// Authenticates a user based on email and password.
+  /// Returns a mock JWT and user info upon success, or a 401/404 if failed.
   router.post('/api/login', (Request request) async {
     try {
       final data = jsonDecode(await request.readAsString());
@@ -134,6 +160,9 @@ void main() async {
 
   // --- Product Endpoints ---
 
+  /// GET /api/products
+  /// Fetches the complete list of products from the inventory.
+  /// Result is sorted alphabetically by product name.
   router.get('/api/products', (Request request) async {
     try {
       final conn = await getConnection();
@@ -148,7 +177,11 @@ void main() async {
     }
   });
 
+  /// POST /api/products
+  /// Creates a new product. 
+  /// Note: Only accessible by users with the 'admin' role header.
   router.post('/api/products', (Request request) async {
+    // Basic Role-Based Access Control (RBAC) validation
     final role = request.headers['X-User-Role'];
     if (role != 'admin') {
       return jsonResponse({'error': 'Unauthorized: Admin only'},
@@ -254,6 +287,9 @@ void main() async {
     }
   });
 
+  /// DELETE /api/products/<id>
+  /// Deletes a specific product based on its ID. 
+  /// Note: Requires 'admin' role. All associated transaction history will be purged first.
   router.delete('/api/products/<id>', (Request request, String id) async {
     final role = request.headers['X-User-Role'];
     if (role != 'admin') {
@@ -300,10 +336,12 @@ void main() async {
 
   router.get('/api/products/barcode/<code>',
       (Request request, String code) async {
+    final decodedCode = Uri.decodeComponent(code);
+    print('--- Barcode Lookup Target: "$decodedCode" ---');
     try {
       final conn = await getConnection();
       final results =
-          await conn.query('SELECT * FROM products WHERE barcode = ? OR sku = ?', [code, code]);
+          await conn.query('SELECT * FROM products WHERE barcode = ? OR sku = ?', [decodedCode, decodedCode]);
       await conn.close();
 
       if (results.isEmpty) {
@@ -318,6 +356,10 @@ void main() async {
 
   // --- Stock Adjustment Endpoints ---
 
+  /// POST /api/stock/adjust
+  /// Updates the quantity of a specific product and records the change in `transactions`.
+  /// The logic runs sequentially inside a database transaction to ensure atomicity 
+  /// (if standard update succeeds, history log is inserted; else, changes rollback).
   router.post('/api/stock/adjust', (Request request) async {
     try {
       final data = jsonDecode(await request.readAsString());

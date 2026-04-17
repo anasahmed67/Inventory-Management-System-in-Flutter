@@ -1,3 +1,8 @@
+/// Reports Screen
+/// 
+/// Generates visual representations (Pie Charts) of the inventory's value distribution.
+/// Identifies the Top 5 most valuable products and allows exporting reports.
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -32,7 +37,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
     final borderCol = AppTheme.borderColor(context);
     final textCol = AppTheme.textColor(context);
 
-    // Calculate Top 5 products and "Others" share
+    // Aggregate inventory value and extract the top 5 highest-value products.
+    // The remaining products' value is grouped into "Others".
     final List<dynamic> sortedProducts = List.from(productProvider.products);
     final double totalInventoryValue = sortedProducts.fold<double>(0, (sum, p) {
       final q = p['quantity'] ?? 0;

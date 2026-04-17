@@ -1,3 +1,8 @@
+/// Login Screen
+/// 
+/// The initial authentication entry point. 
+/// Captures user credentials and passes them to `AuthProvider` for validation.
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -38,6 +43,8 @@ class _LoginScreenState extends State<LoginScreen>
     _animController.forward();
   }
 
+  /// Attempts to authenticate the user via the `AuthProvider`.
+  /// Displays a snackbar if the login fails.
   void _handleLogin() async {
     setState(() => _isLoading = true);
 

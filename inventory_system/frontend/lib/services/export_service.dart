@@ -1,13 +1,21 @@
+/// Export Service
+/// 
+/// Provides functionality for downloading data tables as CSV files.
+/// This is heavily used in the frontend to export product and transaction reports.
+/// Currently optimized for Flutter Web using HTML Blob downloads.
+
 import 'dart:convert';
 import 'package:csv/csv.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:intl/intl.dart';
 
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:html' as html;
+import '../utils/file_saver.dart' as fs;
 
 class ExportService {
-  /// Exports product list to CSV
+  /// Converts the given list of products into a CSV format and triggers a download.
+  /// 
+  /// Calculates the total 'Value' of the product based on its available quantity 
+  /// and price on the fly before exporting.
   static void exportProductsToCSV(List<dynamic> products) {
     List<List<dynamic>> rows = [];
 
@@ -35,7 +43,7 @@ class ExportService {
     );
   }
 
-  /// Exports transaction list to CSV
+  /// Converts the list of transactions (history logs) into a CSV format and triggers download.
   static void exportTransactionsToCSV(List<dynamic> transactions) {
     List<List<dynamic>> rows = [];
 
@@ -61,25 +69,12 @@ class ExportService {
     );
   }
 
-  /// Helper to handle downloads based on platform
+  /// Internal utility to trigger file downloads in the browser.
+  /// 
+  /// It creates a temporary HTML anchor (`<a>`) tag, sets its `href` to the blob data,
+  /// simulates a click to start the download, and then removes it instantly.
   static void _downloadFile(String content, String fileName, String mimeType) {
-    if (kIsWeb) {
-      final bytes = utf8.encode(content);
-      final blob = html.Blob([bytes], mimeType);
-      final url = html.Url.createObjectUrlFromBlob(blob);
-      final anchor = html.document.createElement('a') as html.AnchorElement
-        ..href = url
-        ..style.display = 'none'
-        ..download = fileName;
-      html.document.body?.children.add(anchor);
-      anchor.click();
-      html.document.body?.children.remove(anchor);
-      html.Url.revokeObjectUrl(url);
-    } else {
-      // For mobile/desktop, we'd use path_provider and dart:io
-      // Since the user is on Chrome, web implementation is priority.
-      print('Download not implemented for this platform');
-    }
+    fs.saveFile(content, fileName, mimeType);
   }
 
   static String _timestamp() {

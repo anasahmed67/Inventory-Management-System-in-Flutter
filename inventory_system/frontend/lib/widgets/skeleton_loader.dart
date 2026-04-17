@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
-/// A shimmering skeleton loading placeholder.
+/// Reusable skeleton loading placeholder that displays a shifting gradient (shimmer) animation.
+/// Used to indicate that a layout structural element is fetching data.
 class SkeletonLoader extends StatefulWidget {
   final double? width;
   final double height;

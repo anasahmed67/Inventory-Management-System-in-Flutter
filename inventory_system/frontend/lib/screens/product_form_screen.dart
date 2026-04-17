@@ -1,4 +1,10 @@
+/// Product Form Screen
+/// 
+/// A dual-purpose screen used to Create a new product or Edit an existing one.
+/// It uses a Flutter [Form] to validate inputs before submitting to the backend.
+
 import 'package:flutter/material.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/product_provider.dart';
@@ -40,7 +46,10 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
 
   bool _isLoading = false;
 
+  /// Validates the form fields and dispatches either an 'update' or 'add' 
+  /// action to the `ProductProvider` based on the [isEdit] flag.
   void _saveForm() async {
+    // Stop if any field fails validation
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
@@ -92,6 +101,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     }
   }
 
+  /// Auto-generates a unique SKU utilizing the current year and a timestamp suffix.
   void _generateSku() {
     final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
     final randomSuffix = timestamp.substring(timestamp.length - 4);
@@ -99,6 +109,30 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     setState(() {
       _skuController.text = generatedSku;
     });
+  }
+
+  /// Opens a camera dialog using `mobile_scanner` to scan a real physical barcode.
+  void _scanBarcode() async {
+    final scannedCode = await showDialog<String>(
+      context: context,
+      builder: (context) => Scaffold(
+        appBar: AppBar(title: const Text('Scan Barcode')),
+        body: MobileScanner(
+          onDetect: (capture) {
+            final List<Barcode> barcodes = capture.barcodes;
+            if (barcodes.isNotEmpty) {
+              Navigator.pop(context, barcodes.first.rawValue);
+            }
+          },
+        ),
+      ),
+    );
+
+    if (scannedCode != null) {
+      setState(() {
+        _barcodeController.text = scannedCode;
+      });
+    }
   }
 
   @override
@@ -260,9 +294,18 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                     const SizedBox(height: AppTheme.spacingSm),
                     TextFormField(
                       controller: _barcodeController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         hintText: 'e.g. 1234567890',
-                        prefixIcon: Icon(Icons.qr_code_rounded, size: 20),
+                        prefixIcon: const Icon(Icons.qr_code_rounded, size: 20),
+                        suffixIcon: IconButton(
+                          onPressed: _scanBarcode,
+                          icon: Icon(
+                            Icons.qr_code_scanner_rounded,
+                            size: 20,
+                            color: AppTheme.textColor(context),
+                          ),
+                          tooltip: 'Scan physical barcode',
+                        ),
                       ),
                     ),
                     const SizedBox(height: AppTheme.spacingXl),

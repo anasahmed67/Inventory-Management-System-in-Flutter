@@ -1,3 +1,8 @@
+/// Product List Screen
+/// 
+/// Displays the inventory catalog with advanced filtering (Low Stock, In Stock, etc.) 
+/// and search capabilities. Also allows quick stock adjustments directly from the list.
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -20,6 +25,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
   String _activeFilter = 'All';
   final Set<int> _loadingIds = {};
 
+  /// Handles the + and - buttons on a product card to rapidly adjust stock levels.
+  /// Throws a snackbar error if the adjustment would result in a negative stock.
   void _quickAdjustQuantity(
     Map<String, dynamic> product,
     int change,
@@ -79,7 +86,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     final isAdmin = authProvider.role == 'admin';
     final productProvider = Provider.of<ProductProvider>(context);
 
-    // Apply search + filter
+    // Apply search filter (checks both Product Name and SKU)
     var filteredProducts = productProvider.products.where((p) {
       final query = _searchQuery.toLowerCase();
       final name = (p['name'] ?? '').toString().toLowerCase();

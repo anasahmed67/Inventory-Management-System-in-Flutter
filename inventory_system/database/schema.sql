@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     quantity INT NOT NULL,
     reason VARCHAR(255), -- New field for stock adjustment
     transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (product_id) REFERENCES products(id),
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id)
 ) ENGINE=InnoDB;
 

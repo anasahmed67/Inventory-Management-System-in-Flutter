@@ -1,3 +1,8 @@
+/// Transaction History Screen
+/// 
+/// Displays an immutable ledger of every stock change (Add, Deduct).
+/// Transactions are grouped by date (Today, Yesterday, etc.) for easier reading.
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../services/api_service.dart';
@@ -22,6 +27,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     _fetchTransactions();
   }
 
+  /// Pulls the complete list of transactions from the backend database.
   Future<void> _fetchTransactions() async {
     setState(() {
       _isLoading = true;
@@ -191,6 +197,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   }
 
   // ── Item 11: Date grouping logic ──
+  /// Parses the raw transaction list and groups them conceptually into 'Today', 'Yesterday',
+  /// or specific calendar dates to organize the list view cleanly.
   List<_DateGroup> _groupByDate(List<dynamic> transactions) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);

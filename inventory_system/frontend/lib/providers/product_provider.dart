@@ -1,3 +1,7 @@
+/// Product Provider
+/// 
+/// Manages the state of the entire product inventory. Caches the product list 
+/// locally to minimize API calls and provides filtered lists (like low stock).
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 
@@ -8,11 +12,14 @@ class ProductProvider with ChangeNotifier {
   List<dynamic> get products => _products;
   bool get isLoading => _isLoading;
 
+  /// Dynamically filters the cached products to return only those that 
+  /// are at or below their designated low stock threshold (defaults to 5).
   List<dynamic> get lowStockProducts => _products.where((p) {
-    final threshold = p['low_stock_threshold'] ?? 5;
+    final threshold = p['low_stock_threshold'] ?? 5; // Fallback to 5 if threshold is undefined
     return (p['quantity'] ?? 0) <= threshold;
   }).toList();
 
+  /// Refreshes the product inventory from the backend.
   Future<void> fetchProducts() async {
     _isLoading = true;
     notifyListeners();
@@ -26,9 +33,11 @@ class ProductProvider with ChangeNotifier {
     }
   }
 
+  /// Updates the quantity of a product directly (e.g., from a quick-action button in the UI).
+  /// Automatically re-fetches the product list after a successful update to sync the UI.
   Future<void> quickAdjustStock({
     required int productId,
-    required int quantityChange,
+    required int quantityChange, // Positive for adding stock, Negative for deducting
     required int userId,
     required String role,
     String reason = "Quick Adjustment",

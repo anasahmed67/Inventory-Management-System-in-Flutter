@@ -1,3 +1,8 @@
+/// Application Entry Point
+/// 
+/// Sets up the top-level app configuration, initializes global state management ([MultiProvider]),
+/// and determines the initial routing based on user authentication status.
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
@@ -15,6 +20,8 @@ void main() {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ProductProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        // AnalyticsProvider depends on Products; it automatically recalculates 
+        // when the product library updates.
         ChangeNotifierProxyProvider<ProductProvider, AnalyticsProvider>(
           create: (_) => AnalyticsProvider(),
           update: (_, productProvider, analyticsProvider) =>

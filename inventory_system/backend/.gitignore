@@ -1,0 +1,14 @@
+# Dart / Pub
+.dart_tool/
+.packages
+.pub/
+build/
+
+# Logs / one-off outputs
+*.log
+*_out.txt
+test_out.txt
+
+# Temporary scripts
+tmp/
+

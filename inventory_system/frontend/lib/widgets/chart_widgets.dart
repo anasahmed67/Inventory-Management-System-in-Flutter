@@ -1,7 +1,12 @@
+/// Chart Widgets
+/// 
+/// Reusable wrappers around the `fl_chart` library to render the dashboard's Analytics.
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
+/// Renders a Pie Chart summarizing overall stock health (Healthy vs Low vs Out of Stock).
 class StockStatusChart extends StatelessWidget {
   final Map<String, dynamic> summary;
 
@@ -71,6 +76,7 @@ class StockStatusChart extends StatelessWidget {
   }
 }
 
+/// Renders a Bar Chart displaying the inventory quantities of the Top 5 most valuable products.
 class TopProductsChart extends StatelessWidget {
   final List<dynamic> products;
 

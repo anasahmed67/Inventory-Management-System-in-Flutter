@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+/// Centralized Design System
+/// 
+/// Contains all exact color tokens, sizing constraints (radii, spacing),
+/// and the overall Light/Dark `ThemeData` generation for the Flutter application.
+/// Incorporates the 'Neo-Brutalist' aesthetic via thick borders and distinct shadows.
 class AppTheme {
   // ── Currency ───────────────────────────────────────────────────
   static const String currencySymbol = 'Rs.';

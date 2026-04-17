@@ -1,3 +1,7 @@
+/// Analytics Provider
+/// 
+/// Manages the state for dashboard analytics, including the summary of stock health 
+/// (healthy vs low stock vs out of stock) and the top 5 most stocked products.
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 
@@ -68,11 +72,13 @@ class AnalyticsProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  /// Fetches analytics data directly from the backend API.
+  /// Used primarily on app startup or when manually refreshing the dashboard.
   Future<void> fetchAnalytics() async {
     _isLoading = true;
     notifyListeners();
     try {
-      // Fetch both in parallel
+      // Fetch both summary and top products in parallel to reduce loading time
       final results = await Future.wait([
         ApiService.getStockSummary(),
         ApiService.getTopProducts(),

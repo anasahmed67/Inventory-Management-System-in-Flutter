@@ -1,3 +1,7 @@
+/// Theme Provider
+/// 
+/// Global state manager for the app's visual theme. 
+/// Allows users to toggle between Light and Dark modes.
 import 'package:flutter/material.dart';
 
 class ThemeProvider extends ChangeNotifier {

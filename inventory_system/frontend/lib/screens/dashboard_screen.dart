@@ -1,3 +1,9 @@
+/// Dashboard Screen
+///
+/// The main landing page after a successful login.
+/// It acts as a shell providing the main navigation menu (sidebar on web/desktop,
+/// bottom nav on mobile) and displays an overview of stock health and analytics.
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -26,6 +32,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
+    // Fetch initial data right after the widget builds.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<ProductProvider>(context, listen: false).fetchProducts();
       Provider.of<AnalyticsProvider>(context, listen: false).fetchAnalytics();
@@ -35,6 +42,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
+
+    // UI adapts based on the user's role (e.g., hiding 'Products' CRUD from non-admins)
     final isAdmin = authProvider.role == 'admin';
     final width = MediaQuery.of(context).size.width;
     final isWide = width >= 900;
@@ -110,10 +119,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: child,
         ),
       ),
-      child: KeyedSubtree(
-        key: ValueKey(_selectedIndex),
-        child: content,
-      ),
+      child: KeyedSubtree(key: ValueKey(_selectedIndex), child: content),
     );
 
     if (isWide) {
@@ -134,10 +140,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             currentLabel,
             style: const TextStyle(fontWeight: FontWeight.w900),
           ),
-          actions: [
-            _buildThemeToggle(),
-            _buildLogoutButton(authProvider),
-          ],
+          actions: [_buildThemeToggle(), _buildLogoutButton(authProvider)],
         ),
         body: animatedContent,
         bottomNavigationBar: _buildBottomNav(navItems),
@@ -158,7 +161,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             transitionBuilder: (child, anim) =>
                 RotationTransition(turns: anim, child: child),
             child: Icon(
-              themeProvider.isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+              themeProvider.isDark
+                  ? Icons.light_mode_rounded
+                  : Icons.dark_mode_rounded,
               key: ValueKey(themeProvider.isDark),
             ),
           ),
@@ -316,7 +321,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             : Colors.white.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                         border: Border.all(
-                          color: isDark ? AppTheme.darkBorder : Colors.white.withValues(alpha: 0.2),
+                          color: isDark
+                              ? AppTheme.darkBorder
+                              : Colors.white.withValues(alpha: 0.2),
                           width: 1.5,
                         ),
                       ),
@@ -443,6 +450,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ════════════════════════════════════════════════════════════════
   // Dashboard Home Content
   // ════════════════════════════════════════════════════════════════
+
+  /// Builds the default homepage showing high-level stats, charts, and shortcuts.
   Widget _buildDashboardContent(
     BuildContext context,
     AuthProvider authProvider,
@@ -516,7 +525,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     decoration: BoxDecoration(
                       color: AppTheme.primary,
                       borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                      border: Border.all(color: AppTheme.borderColor(context), width: 2),
+                      border: Border.all(
+                        color: AppTheme.borderColor(context),
+                        width: 2,
+                      ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -567,10 +579,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       context: context,
                       icon: Icons.warning_amber_rounded,
                       iconColor: AppTheme.danger,
-                      iconBg: isDark ? const Color(0xFF3D1F1F) : AppTheme.dangerLight,
+                      iconBg: isDark
+                          ? const Color(0xFF3D1F1F)
+                          : AppTheme.dangerLight,
                       label: 'Low Stock',
                       value: lowStockCount,
-                      subtitle: lowStockCount > 0 ? 'Needs attention' : 'All good',
+                      subtitle: lowStockCount > 0
+                          ? 'Needs attention'
+                          : 'All good',
                       width: isWide ? null : double.infinity,
                     ),
                   ),
@@ -580,7 +596,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       context: context,
                       icon: Icons.payments_rounded,
                       iconColor: AppTheme.success,
-                      iconBg: isDark ? const Color(0xFF1A3D2E) : AppTheme.successLight,
+                      iconBg: isDark
+                          ? const Color(0xFF1A3D2E)
+                          : AppTheme.successLight,
                       label: 'Total Value',
                       value: totalValue.toInt(),
                       prefix: AppTheme.currencySymbol,
@@ -632,7 +650,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   text:
                       '$lowStockCount product${lowStockCount > 1 ? 's' : ''} below stock threshold',
                   color: AppTheme.danger,
-                  bgColor: isDark ? const Color(0xFF3D1F1F) : AppTheme.dangerLight,
+                  bgColor: isDark
+                      ? const Color(0xFF3D1F1F)
+                      : AppTheme.dangerLight,
                 ),
               ),
               const SizedBox(height: AppTheme.spacingLg),
@@ -899,10 +919,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: actions
               .asMap()
               .entries
-              .map((entry) => _StaggeredEntry(
-                    index: 6 + entry.key,
-                    child: _buildQuickActionCard(entry.value),
-                  ))
+              .map(
+                (entry) => _StaggeredEntry(
+                  index: 6 + entry.key,
+                  child: _buildQuickActionCard(entry.value),
+                ),
+              )
               .toList(),
         );
       },
@@ -910,7 +932,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildQuickActionCard(_QuickAction action) {
-
     return NeoCard(
       onTap: action.onTap,
       color: action.color,
@@ -938,7 +959,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
           ),
-          const Icon(Icons.arrow_forward_rounded, color: Colors.black, size: 18),
+          const Icon(
+            Icons.arrow_forward_rounded,
+            color: Colors.black,
+            size: 18,
+          ),
         ],
       ),
     );

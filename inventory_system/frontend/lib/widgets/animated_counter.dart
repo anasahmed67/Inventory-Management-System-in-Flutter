@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 /// An animated number counter that counts up from 0 to [value].
-/// Supports both integer and currency formatting.
+/// Supports both integer and currency formatting strings (e.g., "$1,234.56").
+/// It parses out the non-numeric characters, animates the pure number, and reapplies formatting.
 class AnimatedCounter extends StatelessWidget {
   final String value;
   final TextStyle? style;

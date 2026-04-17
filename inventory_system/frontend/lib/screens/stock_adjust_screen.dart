@@ -1,3 +1,8 @@
+/// Stock Adjust Screen
+/// 
+/// Dedicated screen for rigorous stock modifications (e.g., audits, damage write-offs).
+/// Features a built-in barcode scanner to quickly pull up a product and adjust its quantity.
+
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:provider/provider.dart';
@@ -22,6 +27,7 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
   Map<String, dynamic>? _selectedProduct;
   bool _isLoading = false;
 
+  /// Calls the backend to retrieve a single product matching the typed/scanned barcode or SKU.
   void _searchProduct() async {
     final code = _barcodeController.text.trim();
     if (code.isEmpty) return;
@@ -46,6 +52,7 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
     }
   }
 
+  /// Opens a camera dialog using `mobile_scanner` to scan a physical barcode.
   void _scanBarcode() async {
     final scannedCode = await showDialog<String>(
       context: context,
