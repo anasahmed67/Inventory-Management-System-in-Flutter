@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 /// Centralized Design System
-/// 
+///
 /// Contains all exact color tokens, sizing constraints (radii, spacing),
 /// and the overall Light/Dark `ThemeData` generation for the Flutter application.
 /// Incorporates the 'Neo-Brutalist' aesthetic via thick borders and distinct shadows.
@@ -67,13 +67,53 @@ class AppTheme {
   static const double spacingLg = 24;
   static const double spacingXl = 32;
   static const double spacingXxl = 48;
-  
+
+  // ── Responsive Breakpoints ────────────────────────────────────
+  /// Screen width threshold below which the layout is treated as "phone"
+  static const double breakpointMobile = 600;
+
+  /// Screen width threshold below which the layout is treated as "tablet" (600–900px)
+  static const double breakpointTablet = 900;
+
+  /// Screen width threshold above which the layout gets an expanded desktop treatment
+  static const double breakpointDesktop = 1200;
+
+  /// Returns true when the screen is phone-sized (< 600px)
+  static bool isMobile(BuildContext context) =>
+      MediaQuery.of(context).size.width < breakpointMobile;
+
+  /// Returns true when the screen is in the tablet range (600–900px)
+  static bool isTablet(BuildContext context) {
+    final w = MediaQuery.of(context).size.width;
+    return w >= breakpointMobile && w < breakpointTablet;
+  }
+
+  /// Returns true when the screen is desktop-sized (>= 900px)
+  static bool isDesktop(BuildContext context) =>
+      MediaQuery.of(context).size.width >= breakpointTablet;
+
+  /// Returns one of three values depending on the current breakpoint.
+  /// [mobile] is used below 600px, [tablet] between 600–900px, [desktop] above 900px.
+  static T getResponsiveValue<T>(BuildContext context, {required T mobile, required T tablet, required T desktop}) {
+    final w = MediaQuery.of(context).size.width;
+    if (w < breakpointMobile) return mobile;
+    if (w < breakpointTablet) return tablet;
+    return desktop;
+  }
+
+  /// Returns responsive content padding: 16dp on phones, 24dp on tablets, 32dp on desktops.
   static double getResponsivePadding(BuildContext context) {
-    return MediaQuery.of(context).size.width < 600 ? spacingMd : spacingLg;
+    final w = MediaQuery.of(context).size.width;
+    if (w < breakpointMobile) return spacingMd;       // 16
+    if (w < breakpointTablet) return spacingLg;       // 24
+    return spacingXl;                                  // 32
   }
 
   // ── Sidebar ───────────────────────────────────────────────────
   static const double sidebarWidth = 260;
+
+  /// Width of the icon-only collapsed sidebar shown on tablets (600–900px)
+  static const double sidebarWidthCollapsed = 72;
   static const Color sidebarBg = Color(0xFF000000);
   static const Color sidebarActiveItem = primary;
   static const Color sidebarText = Color(0xFFFFFFFF);
@@ -90,35 +130,19 @@ class AppTheme {
 
   // ── Box Shadows (Multi-Level) ─────────────────────────────────
   static List<BoxShadow> get shadowSm => [
-    const BoxShadow(
-      color: Colors.black,
-      offset: Offset(2, 2),
-      blurRadius: 0,
-    ),
+    const BoxShadow(color: Colors.black, offset: Offset(2, 2), blurRadius: 0),
   ];
 
   static List<BoxShadow> get cardShadow => [
-    const BoxShadow(
-      color: Colors.black,
-      offset: Offset(4, 4),
-      blurRadius: 0,
-    ),
+    const BoxShadow(color: Colors.black, offset: Offset(4, 4), blurRadius: 0),
   ];
 
   static List<BoxShadow> get softShadow => [
-    const BoxShadow(
-      color: Colors.black,
-      offset: Offset(3, 3),
-      blurRadius: 0,
-    ),
+    const BoxShadow(color: Colors.black, offset: Offset(3, 3), blurRadius: 0),
   ];
 
   static List<BoxShadow> get shadowLg => [
-    const BoxShadow(
-      color: Colors.black,
-      offset: Offset(6, 6),
-      blurRadius: 0,
-    ),
+    const BoxShadow(color: Colors.black, offset: Offset(6, 6), blurRadius: 0),
   ];
 
   // ── Dark Mode Shadows ─────────────────────────────────────────
@@ -185,8 +209,14 @@ class AppTheme {
           color: textPrimary,
           fontWeight: FontWeight.w700,
         ),
-        bodyLarge: baseTextTheme.bodyLarge?.copyWith(color: textPrimary, fontWeight: FontWeight.w600),
-        bodyMedium: baseTextTheme.bodyMedium?.copyWith(color: textSecondary, fontWeight: FontWeight.w500),
+        bodyLarge: baseTextTheme.bodyLarge?.copyWith(
+          color: textPrimary,
+          fontWeight: FontWeight.w600,
+        ),
+        bodyMedium: baseTextTheme.bodyMedium?.copyWith(
+          color: textSecondary,
+          fontWeight: FontWeight.w500,
+        ),
         bodySmall: baseTextTheme.bodySmall?.copyWith(color: textHint),
         labelLarge: baseTextTheme.labelLarge?.copyWith(
           color: Colors.black,
@@ -250,7 +280,11 @@ class AppTheme {
           borderRadius: BorderRadius.circular(radiusMd),
           borderSide: const BorderSide(color: danger, width: borderWidth + 1),
         ),
-        labelStyle: GoogleFonts.inter(color: textSecondary, fontSize: 14, fontWeight: FontWeight.w600),
+        labelStyle: GoogleFonts.inter(
+          color: textSecondary,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+        ),
         hintStyle: GoogleFonts.inter(color: textHint, fontSize: 14),
         prefixIconColor: textPrimary,
       ),
@@ -317,7 +351,10 @@ class AppTheme {
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         backgroundColor: Colors.black,
-        contentTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        contentTextStyle: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+        ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(radiusMd),
           side: const BorderSide(color: primary, width: borderWidth),
@@ -365,7 +402,9 @@ class AppTheme {
   // Dark Theme
   // ════════════════════════════════════════════════════════════════
   static ThemeData get darkTheme {
-    final baseTextTheme = GoogleFonts.interTextTheme(ThemeData.dark().textTheme);
+    final baseTextTheme = GoogleFonts.interTextTheme(
+      ThemeData.dark().textTheme,
+    );
 
     return ThemeData(
       useMaterial3: true,
@@ -383,16 +422,44 @@ class AppTheme {
 
       // Text
       textTheme: baseTextTheme.copyWith(
-        displayLarge: baseTextTheme.displayLarge?.copyWith(color: darkTextPrimary, fontWeight: FontWeight.w900),
-        headlineLarge: baseTextTheme.headlineLarge?.copyWith(color: darkTextPrimary, fontWeight: FontWeight.w900),
-        headlineMedium: baseTextTheme.headlineMedium?.copyWith(color: darkTextPrimary, fontWeight: FontWeight.w800, letterSpacing: -0.5),
-        headlineSmall: baseTextTheme.headlineSmall?.copyWith(color: darkTextPrimary, fontWeight: FontWeight.w800),
-        titleLarge: baseTextTheme.titleLarge?.copyWith(color: darkTextPrimary, fontWeight: FontWeight.w800),
-        titleMedium: baseTextTheme.titleMedium?.copyWith(color: darkTextPrimary, fontWeight: FontWeight.w700),
-        bodyLarge: baseTextTheme.bodyLarge?.copyWith(color: darkTextPrimary, fontWeight: FontWeight.w600),
-        bodyMedium: baseTextTheme.bodyMedium?.copyWith(color: darkTextSecondary, fontWeight: FontWeight.w500),
+        displayLarge: baseTextTheme.displayLarge?.copyWith(
+          color: darkTextPrimary,
+          fontWeight: FontWeight.w900,
+        ),
+        headlineLarge: baseTextTheme.headlineLarge?.copyWith(
+          color: darkTextPrimary,
+          fontWeight: FontWeight.w900,
+        ),
+        headlineMedium: baseTextTheme.headlineMedium?.copyWith(
+          color: darkTextPrimary,
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.5,
+        ),
+        headlineSmall: baseTextTheme.headlineSmall?.copyWith(
+          color: darkTextPrimary,
+          fontWeight: FontWeight.w800,
+        ),
+        titleLarge: baseTextTheme.titleLarge?.copyWith(
+          color: darkTextPrimary,
+          fontWeight: FontWeight.w800,
+        ),
+        titleMedium: baseTextTheme.titleMedium?.copyWith(
+          color: darkTextPrimary,
+          fontWeight: FontWeight.w700,
+        ),
+        bodyLarge: baseTextTheme.bodyLarge?.copyWith(
+          color: darkTextPrimary,
+          fontWeight: FontWeight.w600,
+        ),
+        bodyMedium: baseTextTheme.bodyMedium?.copyWith(
+          color: darkTextSecondary,
+          fontWeight: FontWeight.w500,
+        ),
         bodySmall: baseTextTheme.bodySmall?.copyWith(color: darkTextHint),
-        labelLarge: baseTextTheme.labelLarge?.copyWith(color: darkTextPrimary, fontWeight: FontWeight.w700),
+        labelLarge: baseTextTheme.labelLarge?.copyWith(
+          color: darkTextPrimary,
+          fontWeight: FontWeight.w700,
+        ),
       ),
 
       // AppBar
@@ -401,8 +468,14 @@ class AppTheme {
         foregroundColor: darkTextPrimary,
         elevation: 0,
         centerTitle: false,
-        shape: Border(bottom: BorderSide(color: darkBorder, width: borderWidth)),
-        titleTextStyle: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w800, color: darkTextPrimary),
+        shape: Border(
+          bottom: BorderSide(color: darkBorder, width: borderWidth),
+        ),
+        titleTextStyle: GoogleFonts.inter(
+          fontSize: 20,
+          fontWeight: FontWeight.w800,
+          color: darkTextPrimary,
+        ),
         iconTheme: IconThemeData(color: darkTextPrimary),
       ),
 
@@ -421,7 +494,10 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: darkSurfaceVariant,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusMd),
           borderSide: BorderSide(color: darkBorder, width: borderWidth),
@@ -442,7 +518,11 @@ class AppTheme {
           borderRadius: BorderRadius.circular(radiusMd),
           borderSide: const BorderSide(color: danger, width: borderWidth + 1),
         ),
-        labelStyle: GoogleFonts.inter(color: darkTextSecondary, fontSize: 14, fontWeight: FontWeight.w600),
+        labelStyle: GoogleFonts.inter(
+          color: darkTextSecondary,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+        ),
         hintStyle: GoogleFonts.inter(color: darkTextHint, fontSize: 14),
         prefixIconColor: darkTextPrimary,
       ),
@@ -458,7 +538,10 @@ class AppTheme {
             borderRadius: BorderRadius.circular(radiusMd),
             side: BorderSide(color: darkBorder, width: borderWidth),
           ),
-          textStyle: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w800),
+          textStyle: GoogleFonts.inter(
+            fontSize: 15,
+            fontWeight: FontWeight.w800,
+          ),
         ),
       ),
 
@@ -466,7 +549,11 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: darkTextPrimary,
-          textStyle: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700, decoration: TextDecoration.underline),
+          textStyle: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            decoration: TextDecoration.underline,
+          ),
         ),
       ),
 
@@ -482,7 +569,11 @@ class AppTheme {
       ),
 
       // Divider
-      dividerTheme: DividerThemeData(color: darkBorder, thickness: borderWidth, space: 0),
+      dividerTheme: DividerThemeData(
+        color: darkBorder,
+        thickness: borderWidth,
+        space: 0,
+      ),
 
       // Dialog
       dialogTheme: DialogThemeData(
@@ -498,7 +589,10 @@ class AppTheme {
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         backgroundColor: darkSurfaceVariant,
-        contentTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        contentTextStyle: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+        ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(radiusMd),
           side: const BorderSide(color: primary, width: borderWidth),
@@ -508,7 +602,11 @@ class AppTheme {
       // Chip
       chipTheme: ChipThemeData(
         backgroundColor: darkSurfaceVariant,
-        labelStyle: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: darkTextPrimary),
+        labelStyle: GoogleFonts.inter(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: darkTextPrimary,
+        ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(radiusMd),
           side: BorderSide(color: darkBorder, width: 1.5),

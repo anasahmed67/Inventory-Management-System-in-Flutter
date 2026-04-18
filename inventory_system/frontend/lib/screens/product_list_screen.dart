@@ -1,6 +1,6 @@
 /// Product List Screen
-/// 
-/// Displays the inventory catalog with advanced filtering (Low Stock, In Stock, etc.) 
+///
+/// Displays the inventory catalog with advanced filtering (Low Stock, In Stock, etc.)
 /// and search capabilities. Also allows quick stock adjustments directly from the list.
 
 import 'package:flutter/material.dart';
@@ -148,56 +148,65 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 spacing: 12,
                 runSpacing: 12,
                 children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Products',
-                      style: Theme.of(context).textTheme.headlineMedium
-                          ?.copyWith(fontWeight: FontWeight.w900, fontSize: isMobile ? 24 : 32),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${filteredProducts.length} items in inventory',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildHeaderIconButton(
-                      icon: Icons.file_download_outlined,
-                      tooltip: 'Export CSV',
-                      onTap: () => ExportService.exportProductsToCSV(
-                        productProvider.products,
-                      ),
-                    ),
-                    if (isAdmin && !isMobile) ...[
-                      const SizedBox(width: AppTheme.spacingMd),
-                      ElevatedButton.icon(
-                        onPressed: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ProductFormScreen(),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Products',
+                        style: Theme.of(context).textTheme.headlineMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.w900,
+                              fontSize: isMobile ? 24 : 32,
                             ),
-                          );
-                          if (!context.mounted) return;
-                          productProvider.fetchProducts();
-                        },
-                        icon: const Icon(Icons.add_rounded, size: 20, color: Colors.black),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primary,
-                          foregroundColor: Colors.black,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${filteredProducts.length} items in inventory',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
                         ),
-                        label: const Text('Add Product'),
                       ),
                     ],
-                  ],
-                ),
-              ],
-            ),
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildHeaderIconButton(
+                        icon: Icons.file_download_outlined,
+                        tooltip: 'Export CSV',
+                        onTap: () => ExportService.exportProductsToCSV(
+                          productProvider.products,
+                        ),
+                      ),
+                      if (isAdmin && !isMobile) ...[
+                        const SizedBox(width: AppTheme.spacingMd),
+                        ElevatedButton.icon(
+                          onPressed: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const ProductFormScreen(),
+                              ),
+                            );
+                            if (!context.mounted) return;
+                            productProvider.fetchProducts();
+                          },
+                          icon: const Icon(
+                            Icons.add_rounded,
+                            size: 20,
+                            color: Colors.black,
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primary,
+                            foregroundColor: Colors.black,
+                          ),
+                          label: const Text('Add Product'),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: AppTheme.spacingLg),
 
@@ -224,10 +233,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: ['All', 'In Stock', 'Low Stock', 'Out of Stock']
-                    .map((filter) => Padding(
-                          padding: const EdgeInsets.only(right: AppTheme.spacingSm),
-                          child: _buildFilterChip(filter),
-                        ))
+                    .map(
+                      (filter) => Padding(
+                        padding: const EdgeInsets.only(
+                          right: AppTheme.spacingSm,
+                        ),
+                        child: _buildFilterChip(filter),
+                      ),
+                    )
                     .toList(),
               ),
             ),
@@ -235,46 +248,80 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
             // ── Product List ──
             Expanded(
-              child: productProvider.isLoading && productProvider.products.isEmpty
+              child:
+                  productProvider.isLoading && productProvider.products.isEmpty
                   // ── Item 7: Skeleton Loading ──
                   ? ListView.builder(
                       itemCount: 5,
                       itemBuilder: (_, _) => const ProductCardSkeleton(),
                     )
                   : filteredProducts.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.inventory_2_outlined,
-                                size: 64,
-                                color: AppTheme.hintColor(context),
-                              ),
-                              const SizedBox(height: AppTheme.spacingMd),
-                              Text(
-                                'No products found',
-                                style: Theme.of(context).textTheme.titleMedium
-                                    ?.copyWith(color: AppTheme.hintColor(context)),
-                              ),
-                            ],
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.inventory_2_outlined,
+                            size: 64,
+                            color: AppTheme.hintColor(context),
                           ),
-                        )
-                      : RefreshIndicator(
-                          onRefresh: () async => productProvider.fetchProducts(),
-                          child: ListView.builder(
+                          const SizedBox(height: AppTheme.spacingMd),
+                          Text(
+                            'No products found',
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(color: AppTheme.hintColor(context)),
+                          ),
+                        ],
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: () async => productProvider.fetchProducts(),
+                      // On wide screens use a 2-col grid; narrow screens use a list
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          if (constraints.maxWidth >= AppTheme.breakpointTablet) {
+                            // Desktop: 2-column responsive grid
+                            return GridView.builder(
+                              gridDelegate:
+                                  const SliverGridDelegateWithMaxCrossAxisExtent(
+                                maxCrossAxisExtent: 600,
+                                mainAxisExtent: 180,
+                                mainAxisSpacing: AppTheme.spacingMd,
+                                crossAxisSpacing: AppTheme.spacingMd,
+                              ),
+                              itemCount: filteredProducts.length,
+                              itemBuilder: (context, index) {
+                                final product = filteredProducts[index];
+                                return _buildProductCard(
+                                  product,
+                                  isAdmin,
+                                  productProvider,
+                                  authProvider,
+                                );
+                              },
+                            );
+                          }
+                          // Mobile / tablet: single-column list
+                          return ListView.builder(
                             itemCount: filteredProducts.length,
                             itemBuilder: (context, index) {
                               final product = filteredProducts[index];
-                              return _buildProductCard(
-                                product,
-                                isAdmin,
-                                productProvider,
-                                authProvider,
+                              return Padding(
+                                padding: const EdgeInsets.only(
+                                  bottom: AppTheme.spacingMd,
+                                ),
+                                child: _buildProductCard(
+                                  product,
+                                  isAdmin,
+                                  productProvider,
+                                  authProvider,
+                                ),
                               );
                             },
-                          ),
-                        ),
+                          );
+                        },
+                      ),
+                    ),
             ),
           ],
         ),
@@ -294,12 +341,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
         duration: AppTheme.quickAnim,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isActive
-              ? AppTheme.primary
-              : AppTheme.cardColor(context),
+          color: isActive ? AppTheme.primary : AppTheme.cardColor(context),
           borderRadius: BorderRadius.circular(AppTheme.radiusFull),
           border: Border.all(
-            color: isActive ? (isDark ? AppTheme.primary : Colors.black) : borderCol,
+            color: isActive
+                ? (isDark ? AppTheme.primary : Colors.black)
+                : borderCol,
             width: 2,
           ),
           boxShadow: isActive ? AppTheme.shadowSm : null,
@@ -363,9 +410,20 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         children: [
                           Text(
                             quantity.toString(),
-                            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Colors.black),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 18,
+                              color: Colors.black,
+                            ),
                           ),
-                          const Text('QTY', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 8, color: Colors.black)),
+                          const Text(
+                            'QTY',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 8,
+                              color: Colors.black,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -379,36 +437,66 @@ class _ProductListScreenState extends State<ProductListScreen> {
                               Expanded(
                                 child: Text(
                                   name.toUpperCase(),
-                                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: textCol),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 15,
+                                    color: textCol,
+                                  ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                               if (isNarrow)
-                                _buildActionPopup(product, productProvider, authProvider, isAdmin, id),
+                                _buildActionPopup(
+                                  product,
+                                  productProvider,
+                                  authProvider,
+                                  isAdmin,
+                                  id,
+                                ),
                             ],
                           ),
                           Text(
                             'SKU: $sku',
-                            style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.hintColor(context), fontSize: 11),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.hintColor(context),
+                              fontSize: 11,
+                            ),
                           ),
                           const SizedBox(height: 8),
                           Wrap(
                             spacing: 8,
                             runSpacing: 4,
                             children: [
-                              _buildInfoChip('${AppTheme.currencySymbol}${NumberFormat('#,###.##').format(price)}'),
+                              _buildInfoChip(
+                                '${AppTheme.currencySymbol}${NumberFormat('#,###.##').format(price)}',
+                              ),
                               if (isLowStock)
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 2,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: isDark ? const Color(0xFF3D1F1F) : AppTheme.dangerLight,
-                                    borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-                                    border: Border.all(color: borderCol, width: 1),
+                                    color: isDark
+                                        ? const Color(0xFF3D1F1F)
+                                        : AppTheme.dangerLight,
+                                    borderRadius: BorderRadius.circular(
+                                      AppTheme.radiusFull,
+                                    ),
+                                    border: Border.all(
+                                      color: borderCol,
+                                      width: 1,
+                                    ),
                                   ),
                                   child: const Text(
                                     'LOW STOCK',
-                                    style: TextStyle(color: AppTheme.danger, fontSize: 9, fontWeight: FontWeight.w900),
+                                    style: TextStyle(
+                                      color: AppTheme.danger,
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w900,
+                                    ),
                                   ),
                                 ),
                             ],
@@ -418,7 +506,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     ),
                     if (!isNarrow) ...[
                       const SizedBox(width: AppTheme.spacingMd),
-                      _buildActionButtons(product, productProvider, authProvider, isAdmin, id),
+                      _buildActionButtons(
+                        product,
+                        productProvider,
+                        authProvider,
+                        isAdmin,
+                        id,
+                      ),
                     ],
                   ],
                 ),
@@ -428,26 +522,48 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   border: Border(top: BorderSide(color: borderCol, width: 1.5)),
                   color: AppTheme.surfaceVariantColor(context),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMd, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppTheme.spacingMd,
+                  vertical: 8,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       'QUICK STOCK ADJUST',
-                      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 10, letterSpacing: 0.5, color: textCol),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 10,
+                        letterSpacing: 0.5,
+                        color: textCol,
+                      ),
                     ),
                     Row(
                       children: [
                         _buildQuickIconButton(
                           icon: Icons.remove_rounded,
                           color: AppTheme.warning,
-                          onTap: isLoading ? null : () => _quickAdjustQuantity(product, -1, productProvider, authProvider),
+                          onTap: isLoading
+                              ? null
+                              : () => _quickAdjustQuantity(
+                                  product,
+                                  -1,
+                                  productProvider,
+                                  authProvider,
+                                ),
                         ),
                         const SizedBox(width: 8),
                         _buildQuickIconButton(
                           icon: Icons.add_rounded,
                           color: AppTheme.success,
-                          onTap: isLoading ? null : () => _quickAdjustQuantity(product, 1, productProvider, authProvider),
+                          onTap: isLoading
+                              ? null
+                              : () => _quickAdjustQuantity(
+                                  product,
+                                  1,
+                                  productProvider,
+                                  authProvider,
+                                ),
                         ),
                       ],
                     ),
@@ -461,7 +577,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
     );
   }
 
-  Widget _buildActionButtons(Map<String, dynamic> product, ProductProvider provider, AuthProvider authProvider, bool isAdmin, int id) {
+  Widget _buildActionButtons(
+    Map<String, dynamic> product,
+    ProductProvider provider,
+    AuthProvider authProvider,
+    bool isAdmin,
+    int id,
+  ) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -472,7 +594,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => ProductFormScreen(product: product)),
+              MaterialPageRoute(
+                builder: (context) => ProductFormScreen(product: product),
+              ),
             ).then((_) => provider.fetchProducts());
           },
         ),
@@ -489,14 +613,22 @@ class _ProductListScreenState extends State<ProductListScreen> {
     );
   }
 
-  Widget _buildActionPopup(Map<String, dynamic> product, ProductProvider provider, AuthProvider authProvider, bool isAdmin, int id) {
+  Widget _buildActionPopup(
+    Map<String, dynamic> product,
+    ProductProvider provider,
+    AuthProvider authProvider,
+    bool isAdmin,
+    int id,
+  ) {
     return PopupMenuButton<String>(
       padding: EdgeInsets.zero,
       onSelected: (val) {
         if (val == 'edit') {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => ProductFormScreen(product: product)),
+            MaterialPageRoute(
+              builder: (context) => ProductFormScreen(product: product),
+            ),
           ).then((_) => provider.fetchProducts());
         } else if (val == 'delete') {
           _handleDelete(product, provider, authProvider, id);
@@ -504,28 +636,49 @@ class _ProductListScreenState extends State<ProductListScreen> {
       },
       itemBuilder: (context) => [
         const PopupMenuItem(value: 'edit', child: Text('EDIT')),
-        if (isAdmin) const PopupMenuItem(value: 'delete', child: Text('DELETE')),
+        if (isAdmin)
+          const PopupMenuItem(value: 'delete', child: Text('DELETE')),
       ],
       icon: Icon(Icons.more_vert_rounded, color: AppTheme.textColor(context)),
     );
   }
 
-  Future<void> _handleDelete(Map<String, dynamic> product, ProductProvider provider, AuthProvider authProvider, int id) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('DELETE PRODUCT?', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.1)),
-        content: const Text('Are you sure you want to delete this item? This action cannot be undone.', style: TextStyle(fontWeight: FontWeight.w700)),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('CANCEL')),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.danger, foregroundColor: Colors.black, padding: const EdgeInsets.symmetric(horizontal: 16)),
-            child: const Text('DELETE'),
+  Future<void> _handleDelete(
+    Map<String, dynamic> product,
+    ProductProvider provider,
+    AuthProvider authProvider,
+    int id,
+  ) async {
+    final confirm =
+        await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text(
+              'DELETE PRODUCT?',
+              style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.1),
+            ),
+            content: const Text(
+              'Are you sure you want to delete this item? This action cannot be undone.',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('CANCEL'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.danger,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                ),
+                child: const Text('DELETE'),
+              ),
+            ],
           ),
-        ],
-      ),
-    ) ?? false;
+        ) ??
+        false;
     if (confirm) {
       try {
         await provider.deleteProduct(id, authProvider.role!);
@@ -590,7 +743,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
             decoration: BoxDecoration(
               color: color,
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-              border: Border.all(color: AppTheme.borderColor(context), width: 1.5),
+              border: Border.all(
+                color: AppTheme.borderColor(context),
+                width: 1.5,
+              ),
             ),
             child: Icon(icon, color: Colors.black, size: 20),
           ),
@@ -617,7 +773,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
             decoration: BoxDecoration(
               color: AppTheme.info,
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-              border: Border.all(color: AppTheme.borderColor(context), width: 2),
+              border: Border.all(
+                color: AppTheme.borderColor(context),
+                width: 2,
+              ),
               boxShadow: AppTheme.adaptiveSoftShadow(context),
             ),
             child: Icon(icon, color: Colors.black, size: 24),
@@ -643,15 +802,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
           decoration: BoxDecoration(
             color: color,
             borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-            border: Border.all(color: AppTheme.borderColor(context), width: 1.5),
-          ),
-          child: Center(
-            child: Icon(
-              icon,
-              color: Colors.black,
-              size: 20,
+            border: Border.all(
+              color: AppTheme.borderColor(context),
+              width: 1.5,
             ),
           ),
+          child: Center(child: Icon(icon, color: Colors.black, size: 20)),
         ),
       ),
     );
@@ -672,8 +828,9 @@ class _NeoProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // No hard-coded margin here — spacing is managed by the parent
+    // ListView's item padding or the GridView's mainAxisSpacing/crossAxisSpacing.
     return Container(
-      margin: const EdgeInsets.only(bottom: AppTheme.spacingMd),
       decoration: BoxDecoration(
         color: AppTheme.cardColor(context),
         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
@@ -687,4 +844,3 @@ class _NeoProductCard extends StatelessWidget {
     );
   }
 }
-

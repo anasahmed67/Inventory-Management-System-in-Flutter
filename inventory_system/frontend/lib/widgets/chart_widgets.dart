@@ -1,4 +1,4 @@
-/// Chart Widgets
+// Chart Widgets
 /// 
 /// Reusable wrappers around the `fl_chart` library to render the dashboard's Analytics.
 

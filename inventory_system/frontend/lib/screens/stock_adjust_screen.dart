@@ -1,4 +1,4 @@
-/// Stock Adjust Screen
+// Stock Adjust Screen
 /// 
 /// Dedicated screen for rigorous stock modifications (e.g., audits, damage write-offs).
 /// Features a built-in barcode scanner to quickly pull up a product and adjust its quantity.

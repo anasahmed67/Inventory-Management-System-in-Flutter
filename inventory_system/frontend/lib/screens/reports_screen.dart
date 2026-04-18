@@ -23,7 +23,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
   @override
   void initState() {
     super.initState();
-    _refresh();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refresh();
+    });
   }
 
   void _refresh() {
@@ -130,7 +132,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     ? Column(
                         children: [
                           SizedBox(
-                            height: 220,
+                            // Taller chart on mobile for better readability
+                            height: 300,
                             child: _buildPieChart(top5, othersValue, totalInventoryValue, palette, borderCol),
                           ),
                           const SizedBox(height: 16),
@@ -138,11 +141,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         ],
                       )
                     : Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
                             flex: 4,
                             child: SizedBox(
-                              height: 220,
+                              height: 280,
                               child: _buildPieChart(top5, othersValue, totalInventoryValue, palette, borderCol),
                             ),
                           ),

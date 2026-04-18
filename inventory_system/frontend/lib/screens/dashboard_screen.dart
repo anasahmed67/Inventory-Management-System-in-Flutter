@@ -1,10 +1,12 @@
-/// Dashboard Screen
+// Dashboard Screen
 ///
 /// The main landing page after a successful login.
 /// It acts as a shell providing the main navigation menu (sidebar on web/desktop,
 /// bottom nav on mobile) and displays an overview of stock health and analytics.
 
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/product_provider.dart';
@@ -46,7 +48,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     // UI adapts based on the user's role (e.g., hiding 'Products' CRUD from non-admins)
     final isAdmin = authProvider.role == 'admin';
     final width = MediaQuery.of(context).size.width;
-    final isWide = width >= 900;
+    final isWide = width >= AppTheme.breakpointTablet;      // >= 900px → full sidebar
+    final isTablet = AppTheme.isTablet(context);             // 600–900px → collapsed sidebar
 
     // Build the list of nav destinations based on role
     final List<_NavItem> navItems = [
@@ -79,14 +82,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
     ];
 
-    // Clamp selected index
-    if (_selectedIndex >= navItems.length) {
-      _selectedIndex = 0;
+    // Clamp selected index locally for rendering to avoid mutating state during build
+    int safeIndex = _selectedIndex;
+    if (safeIndex >= navItems.length) {
+      safeIndex = 0;
     }
-
+ 
     // Build the content for the selected index
     Widget content;
-    final currentLabel = navItems[_selectedIndex].label;
+    final currentLabel = navItems[safeIndex].label;
     switch (currentLabel) {
       case 'Products':
         content = const ProductListScreen();
@@ -119,21 +123,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: child,
         ),
       ),
-      child: KeyedSubtree(key: ValueKey(_selectedIndex), child: content),
+      child: KeyedSubtree(key: ValueKey(safeIndex), child: content),
     );
 
     if (isWide) {
-      // ── Desktop: persistent sidebar ──
+      // ── Desktop: full persistent sidebar ──
       return Scaffold(
         body: Row(
           children: [
-            _buildSidebar(navItems, authProvider),
+            _buildSidebar(navItems, authProvider, safeIndex),
+            Expanded(child: animatedContent),
+          ],
+        ),
+      );
+    } else if (isTablet) {
+      // ── Tablet (600-900px): collapsed icon-only sidebar ──
+      return Scaffold(
+        body: Row(
+          children: [
+            _buildCollapsedSidebar(navItems, authProvider, safeIndex),
             Expanded(child: animatedContent),
           ],
         ),
       );
     } else {
-      // ── Mobile: drawer + bottom nav ──
+      // ── Mobile: appbar + bottom nav ──
       return Scaffold(
         appBar: AppBar(
           title: Text(
@@ -143,7 +157,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           actions: [_buildThemeToggle(), _buildLogoutButton(authProvider)],
         ),
         body: animatedContent,
-        bottomNavigationBar: _buildBottomNav(navItems),
+        bottomNavigationBar: _buildBottomNav(navItems, safeIndex),
       );
     }
   }
@@ -174,9 +188,186 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   // ════════════════════════════════════════════════════════════════
+  // Collapsed Sidebar (Tablet — 72px icon-only)
+  // ════════════════════════════════════════════════════════════════
+  Widget _buildCollapsedSidebar(
+    List<_NavItem> items,
+    AuthProvider authProvider,
+    int safeIndex,
+  ) {
+    final isDark = AppTheme.isDark(context);
+    final sidebarBgColor = AppTheme.sidebarColor(context);
+
+    return Container(
+      width: AppTheme.sidebarWidthCollapsed,
+      decoration: BoxDecoration(
+        color: sidebarBgColor,
+        border: Border(
+          right: BorderSide(
+            color: isDark ? AppTheme.darkBorder : Colors.black,
+            width: AppTheme.borderWidth,
+          ),
+        ),
+      ),
+      child: Column(
+        children: [
+          const SizedBox(height: AppTheme.spacingLg),
+
+          // Compact brand icon
+          Tooltip(
+            message: 'Stockify',
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppTheme.primary,
+                borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                border: Border.all(color: Colors.white, width: 2),
+              ),
+              child: const Icon(
+                Icons.inventory_2_rounded,
+                color: Colors.black,
+                size: 22,
+              ),
+            ),
+          ),
+          const SizedBox(height: AppTheme.spacingLg),
+
+          // Nav icon buttons
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppTheme.spacingSm,
+              ),
+              itemCount: items.length,
+              itemBuilder: (context, index) {
+                final item = items[index];
+                final isActive = safeIndex == index;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: AppTheme.spacingSm),
+                  child: Tooltip(
+                    message: item.label,
+                    preferBelow: false,
+                    child: Material(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                        onTap: () => setState(() => _selectedIndex = index),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color:
+                                isActive ? AppTheme.primary : Colors.transparent,
+                            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                            border: isActive
+                                ? Border.all(color: Colors.white, width: 2)
+                                : null,
+                          ),
+                          child: Icon(
+                            isActive ? item.activeIcon : item.icon,
+                            color:
+                                isActive ? Colors.black : AppTheme.sidebarText,
+                            size: 22,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+
+          // Theme toggle
+          Consumer<ThemeProvider>(
+            builder: (context, themeProvider, _) => Tooltip(
+              message: themeProvider.isDark ? 'Light Mode' : 'Dark Mode',
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppTheme.spacingSm,
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                    onTap: themeProvider.toggleTheme,
+                    child: Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppTheme.darkSurfaceVariant
+                            : Colors.white.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                        border: Border.all(
+                          color: isDark
+                              ? AppTheme.darkBorder
+                              : Colors.white.withValues(alpha: 0.2),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Icon(
+                        themeProvider.isDark
+                            ? Icons.light_mode_rounded
+                            : Icons.dark_mode_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: AppTheme.spacingSm),
+
+          // Logout
+          Tooltip(
+            message: 'Logout',
+            child: Padding(
+              padding: const EdgeInsets.only(
+                left: AppTheme.spacingSm,
+                right: AppTheme.spacingSm,
+                bottom: AppTheme.spacingMd,
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                  onTap: () => _confirmLogout(authProvider),
+                  child: Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: AppTheme.danger,
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                      border: Border.all(
+                        color: isDark ? AppTheme.darkBorder : Colors.black,
+                        width: 1.5,
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.logout_rounded,
+                      color: Colors.black,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════
   // Sidebar (Desktop)
   // ════════════════════════════════════════════════════════════════
-  Widget _buildSidebar(List<_NavItem> items, AuthProvider authProvider) {
+  Widget _buildSidebar(List<_NavItem> items, AuthProvider authProvider, int safeIndex) {
     final role = authProvider.role?.toUpperCase() ?? 'STAFF';
     final isDark = AppTheme.isDark(context);
     final sidebarBgColor = AppTheme.sidebarColor(context);
@@ -240,7 +431,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               itemCount: items.length,
               itemBuilder: (context, index) {
                 final item = items[index];
-                final isActive = _selectedIndex == index;
+                final activeIndex = safeIndex;
+                final isActive = activeIndex == index;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: AppTheme.spacingXs),
                   child: Material(
@@ -430,21 +622,110 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ════════════════════════════════════════════════════════════════
   // Bottom Navigation (Mobile)
   // ════════════════════════════════════════════════════════════════
-  Widget _buildBottomNav(List<_NavItem> items) {
-    return NavigationBar(
-      selectedIndex: _selectedIndex,
-      onDestinationSelected: (i) => setState(() => _selectedIndex = i),
-      indicatorColor: AppTheme.primary.withAlpha(30),
-      labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
-      destinations: items
-          .map(
-            (item) => NavigationDestination(
-              icon: Icon(item.icon),
-              selectedIcon: Icon(item.activeIcon, color: AppTheme.primary),
-              label: item.label,
-            ),
-          )
-          .toList(),
+  Widget _buildBottomNav(List<_NavItem> items, int safeIndex) {
+    final isDark = AppTheme.isDark(context);
+    // Calculated width minus the 16dp horizontal margins
+    final totalWidth = MediaQuery.of(context).size.width - 32;
+    final itemWidth = totalWidth / items.length;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24), // Pushing it up slightly for a 'floating' feel
+      child: SafeArea(
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          height: 64,
+          child: Stack(
+            children: [
+              // ── Professional Glass Shell ──
+              ClipRRect(
+                borderRadius: BorderRadius.circular(32),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? Colors.black.withValues(alpha: 0.4)
+                          : Colors.white.withValues(alpha: 0.7),
+                      borderRadius: BorderRadius.circular(32),
+                      border: Border.all(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.12)
+                            : Colors.black.withValues(alpha: 0.08),
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
+                          offset: const Offset(0, 8),
+                          blurRadius: 20,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              // ── Precision Glowing Indicator ──
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 350),
+                curve: Curves.easeOutQuint,
+                left: safeIndex * itemWidth + (itemWidth - 48) / 2,
+                top: 8,
+                width: 48,
+                height: 48,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary.withValues(alpha: isDark ? 0.25 : 0.15),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.primary.withValues(alpha: 0.3),
+                        blurRadius: 15,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // ── Icon-Only Navigation ──
+              Row(
+                children: items.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final item = entry.value;
+                  final isSelected = safeIndex == index;
+
+                  return Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        if (!isSelected) {
+                          HapticFeedback.selectionClick();
+                          setState(() => _selectedIndex = index);
+                        }
+                      },
+                      behavior: HitTestBehavior.opaque,
+                      child: Center(
+                        child: AnimatedScale(
+                          duration: const Duration(milliseconds: 300),
+                          scale: isSelected ? 1.25 : 1.0,
+                          curve: Curves.easeOutBack,
+                          child: Icon(
+                            isSelected ? item.activeIcon : item.icon,
+                            color: isSelected
+                                ? AppTheme.primary
+                                : AppTheme.secondaryTextColor(context).withValues(alpha: 0.6),
+                            size: 26,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -672,6 +953,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 return LayoutBuilder(
                   builder: (context, constraints) {
                     final isWide = constraints.maxWidth > 700;
+                    // Larger charts on wide layouts look much better
+                    final chartH = isWide ? 320.0 : 270.0;
 
                     return Column(
                       children: [
@@ -688,7 +971,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     child: StockStatusChart(
                                       summary: analytics.stockSummary,
                                     ),
-                                    height: 300,
+                                    height: chartH,
                                   ),
                                 ),
                               ),
@@ -702,7 +985,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     child: TopProductsChart(
                                       products: analytics.topProducts,
                                     ),
-                                    height: 300,
+                                    height: chartH,
                                   ),
                                 ),
                               ),
@@ -717,7 +1000,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               child: StockStatusChart(
                                 summary: analytics.stockSummary,
                               ),
-                              height: 250,
+                              height: chartH,
                             ),
                           ),
                           const SizedBox(height: AppTheme.spacingLg),
@@ -729,7 +1012,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               child: TopProductsChart(
                                 products: analytics.topProducts,
                               ),
-                              height: 250,
+                              height: chartH,
                             ),
                           ),
                         ],
@@ -899,16 +1182,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final crossAxisCount = constraints.maxWidth > 800
-            ? 4
-            : constraints.maxWidth > 450
-            ? 2
-            : 1;
-        final aspectRatio = constraints.maxWidth > 800
-            ? 2.5
-            : constraints.maxWidth > 450
-            ? 2.0
-            : 3.5;
+        final w = constraints.maxWidth;
+        final crossAxisCount = w > 800 ? 4 : w > 480 ? 2 : 1;
+        // Tune aspect ratio per column count so cards stay a comfortable height
+        final aspectRatio = w > 800 ? 2.8 : w > 480 ? 2.2 : 3.5;
 
         return GridView.count(
           crossAxisCount: crossAxisCount,

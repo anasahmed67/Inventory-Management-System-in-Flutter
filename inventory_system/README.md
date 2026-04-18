@@ -1,4 +1,4 @@
-# Inventory Management System
+# Stockify - Inventory Management System
 
 A full-stack inventory management solution built with a **Flutter** frontend and a **Dart (Shelf)** backend, using **MySQL** for data persistence.
 

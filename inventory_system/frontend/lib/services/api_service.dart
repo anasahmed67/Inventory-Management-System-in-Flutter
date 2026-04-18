@@ -1,4 +1,4 @@
-/// API Service
+// API Service
 /// 
 /// This singleton class acts as the bridge between the Flutter frontend and the Dart backend.
 /// It encapsulates all HTTP requests (GET, POST, PUT, DELETE) and handles JSON serialization,
@@ -9,6 +9,10 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart'; // Add this for kIsWeb
 
 class ApiService {
+  /// Local IP address of the backend server.
+  /// Update this if the server's local IP changes (e.g., in office or home networks).
+  static const String _serverIp = '192.168.100.10';
+
   /// Base API URL resolution.
   /// Dynamically selects the localhost URL based on the platform.
   /// (e.g., 10.0.2.2 is required for Android emulators to reach the host machine).
@@ -16,7 +20,7 @@ class ApiService {
     // For physical Android devices, use the local IP of the host machine
     // For Android emulators, 10.0.2.2 is usually used
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-      return 'http://192.168.100.10:8080/api';
+      return 'http://$_serverIp:8080/api';
     }
     return 'http://127.0.0.1:8080/api';
   }

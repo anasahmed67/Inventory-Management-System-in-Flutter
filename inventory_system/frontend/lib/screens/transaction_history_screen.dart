@@ -1,5 +1,5 @@
-/// Transaction History Screen
-/// 
+// Transaction History Screen
+///
 /// Displays an immutable ledger of every stock change (Add, Deduct).
 /// Transactions are grouped by date (Today, Yesterday, etc.) for easier reading.
 
@@ -13,7 +13,8 @@ class TransactionHistoryScreen extends StatefulWidget {
   const TransactionHistoryScreen({super.key});
 
   @override
-  State<TransactionHistoryScreen> createState() => _TransactionHistoryScreenState();
+  State<TransactionHistoryScreen> createState() =>
+      _TransactionHistoryScreenState();
 }
 
 class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
@@ -51,61 +52,71 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       backgroundColor: AppTheme.bgColor(context),
       body: Padding(
-        padding: const EdgeInsets.all(AppTheme.spacingLg),
+        padding: EdgeInsets.all(AppTheme.getResponsivePadding(context)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Header ──
-            Row(
+            // ── Header — uses Wrap so buttons wrap on narrow phones ──
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: AppTheme.spacingMd,
+              runSpacing: AppTheme.spacingMd,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Transaction History',
-                        style: Theme.of(context).textTheme.headlineMedium
-                            ?.copyWith(fontWeight: FontWeight.w900),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Transaction History',
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(fontWeight: FontWeight.w900),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${_transactions.length} records found',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${_transactions.length} records found',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildHeaderIconButton(
+                      icon: Icons.file_download_outlined,
+                      tooltip: 'Export CSV',
+                      onTap: () {
+                        if (_transactions.isNotEmpty) {
+                          ExportService.exportTransactionsToCSV(_transactions);
+                        }
+                      },
+                    ),
+                    const SizedBox(width: AppTheme.spacingMd),
+                    ElevatedButton.icon(
+                      onPressed: _fetchTransactions,
+                      icon: const Icon(
+                        Icons.refresh_rounded,
+                        size: 20,
+                        color: Colors.black,
                       ),
-                    ],
-                  ),
-                ),
-                _buildHeaderIconButton(
-                  icon: Icons.file_download_outlined,
-                  tooltip: 'Export CSV',
-                  onTap: () {
-                    if (_transactions.isNotEmpty) {
-                      ExportService.exportTransactionsToCSV(_transactions);
-                    }
-                  },
-                ),
-                const SizedBox(width: AppTheme.spacingMd),
-                ElevatedButton.icon(
-                  onPressed: _fetchTransactions,
-                  icon: const Icon(Icons.refresh_rounded, size: 20, color: Colors.black),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primary,
-                    foregroundColor: Colors.black,
-                  ),
-                  label: const Text('Refresh'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primary,
+                        foregroundColor: Colors.black,
+                      ),
+                      label: const Text('Refresh'),
+                    ),
+                  ],
                 ),
               ],
             ),
             const SizedBox(height: AppTheme.spacingLg),
 
             // ── Main Content ──
-            Expanded(
-              child: _buildContent(),
-            ),
+            Expanded(child: _buildContent()),
           ],
         ),
       ),
@@ -124,7 +135,11 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline_rounded, size: 48, color: AppTheme.danger),
+            const Icon(
+              Icons.error_outline_rounded,
+              size: 48,
+              color: AppTheme.danger,
+            ),
             const SizedBox(height: AppTheme.spacingMd),
             Text(
               'Failed to load transactions',
@@ -157,10 +172,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             const SizedBox(height: AppTheme.spacingMd),
             Text(
               'No transactions found',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(color: AppTheme.hintColor(context)),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: AppTheme.hintColor(context),
+              ),
             ),
           ],
         ),
@@ -172,24 +186,35 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
 
     return RefreshIndicator(
       onRefresh: _fetchTransactions,
-      child: ListView.builder(
-        itemCount: grouped.length,
-        itemBuilder: (context, index) {
-          final group = grouped[index];
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Date header
-              Padding(
-                padding: EdgeInsets.only(
-                  top: index == 0 ? 0 : AppTheme.spacingMd,
-                  bottom: AppTheme.spacingSm,
-                ),
-                child: _buildDateHeader(group.label),
-              ),
-              // Transaction cards
-              ...group.transactions.map((tx) => _buildTransactionCard(tx)),
-            ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return ListView.builder(
+            itemCount: grouped.length,
+            itemBuilder: (context, index) {
+              final group = grouped[index];
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Date header
+                  Padding(
+                    padding: EdgeInsets.only(
+                      top: index == 0 ? 0 : AppTheme.spacingMd,
+                      bottom: AppTheme.spacingSm,
+                    ),
+                    child: _buildDateHeader(group.label),
+                  ),
+                  // Single column list for all devices
+                  ...group.transactions.map(
+                    (tx) => Padding(
+                      padding: const EdgeInsets.only(
+                        bottom: AppTheme.spacingMd,
+                      ),
+                      child: _buildTransactionCard(tx),
+                    ),
+                  ),
+                ],
+              );
+            },
           );
         },
       ),
@@ -279,7 +304,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     final type = tx['type'].toString().toUpperCase();
     final isOut = type == 'OUT';
     final iconColor = isOut ? AppTheme.danger : AppTheme.success;
-    final iconData = isOut ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded;
+    final iconData = isOut
+        ? Icons.arrow_downward_rounded
+        : Icons.arrow_upward_rounded;
     final isDark = AppTheme.isDark(context);
     final borderCol = AppTheme.borderColor(context);
     final textCol = AppTheme.textColor(context);
@@ -299,7 +326,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     final user = tx['user_name'] ?? 'Unknown User';
 
     return Container(
-      margin: const EdgeInsets.only(bottom: AppTheme.spacingMd),
+      // margin is managed by parent list/grid spacing
       decoration: BoxDecoration(
         color: AppTheme.cardColor(context),
         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
@@ -354,12 +381,21 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
                         color: isOut
-                            ? (isDark ? const Color(0xFF3D1F1F) : AppTheme.dangerLight)
-                            : (isDark ? const Color(0xFF1A3D2E) : AppTheme.successLight),
-                        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                            ? (isDark
+                                  ? const Color(0xFF3D1F1F)
+                                  : AppTheme.dangerLight)
+                            : (isDark
+                                  ? const Color(0xFF1A3D2E)
+                                  : AppTheme.successLight),
+                        borderRadius: BorderRadius.circular(
+                          AppTheme.radiusFull,
+                        ),
                         border: Border.all(color: borderCol, width: 1.5),
                       ),
                       child: Text(
@@ -398,9 +434,14 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                 if (reason.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
-                      color: isDark ? AppTheme.darkSurfaceVariant : AppTheme.infoLight,
+                      color: isDark
+                          ? AppTheme.darkSurfaceVariant
+                          : AppTheme.infoLight,
                       borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                       border: Border.all(color: borderCol, width: 1.5),
                     ),
@@ -440,7 +481,10 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             decoration: BoxDecoration(
               color: AppTheme.info,
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-              border: Border.all(color: AppTheme.borderColor(context), width: 2),
+              border: Border.all(
+                color: AppTheme.borderColor(context),
+                width: 2,
+              ),
               boxShadow: AppTheme.adaptiveSoftShadow(context),
             ),
             child: Icon(icon, color: Colors.black, size: 24),
